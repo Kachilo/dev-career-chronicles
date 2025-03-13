@@ -80,7 +80,9 @@
   p {
     @apply font-serif leading-relaxed;
   }
-  
+}
+
+@layer components {
   /* Enhanced blog content styling */
   .blog-content {
     @apply prose prose-lg lg:prose-xl max-w-none;
@@ -133,18 +135,18 @@
   .blog-content pre code {
     @apply bg-transparent p-0 text-sm;
   }
-  
-  /* Responsive adjustments */
-  @media (max-width: 640px) {
-    .blog-content h1 {
-      @apply text-2xl;
-    }
-    .blog-content h2 {
-      @apply text-xl;
-    }
-    .blog-content h3 {
-      @apply text-lg;
-    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .blog-content h1 {
+    @apply text-2xl;
+  }
+  .blog-content h2 {
+    @apply text-xl;
+  }
+  .blog-content h3 {
+    @apply text-lg;
   }
 }
 

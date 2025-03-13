@@ -10,6 +10,7 @@ import Blockquote from '@tiptap/extension-blockquote';
 import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
+import Paragraph from '@tiptap/extension-paragraph';
 import { Button } from "@/components/ui/button";
 import { 
   Bold as BoldIcon,
@@ -40,7 +41,9 @@ export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
         blockquote: false,
         code: false,
         codeBlock: false,
+        paragraph: false,
       }),
+      Paragraph,
       Heading.configure({
         levels: [1, 2, 3],
       }),

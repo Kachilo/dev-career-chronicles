@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ThumbsUp, Clap } from "lucide-react";
+import { Heart, ThumbsUp, Award } from "lucide-react";
 import { Reactions } from "../types/blog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,7 +77,7 @@ export const ReactionButtons = ({ postId, initialReactions }: ReactionButtonsPro
         onClick={() => handleReaction("clap")}
         className="flex items-center gap-1"
       >
-        <Clap className="h-4 w-4" />
+        <Award className="h-4 w-4" />
         <span>{reactions.clap}</span>
       </Button>
     </div>

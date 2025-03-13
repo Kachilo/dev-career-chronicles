@@ -78,7 +78,7 @@ const BlogPostPage = () => {
         </header>
         
         <div 
-          className="blog-content prose prose-lg max-w-none"
+          className="blog-content"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
         

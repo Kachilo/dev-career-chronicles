@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BlogPost } from "../../types/blog";
 import { categories } from "../../data/blogData";
 import { useToast } from "@/hooks/use-toast";
+import { RichTextEditor } from "./RichTextEditor";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PostFormProps {
   post?: BlogPost;
@@ -24,6 +26,7 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
   const [featuredImage, setFeaturedImage] = useState(post?.featuredImage || "");
   const [category, setCategory] = useState(post?.category || "");
   const [tags, setTags] = useState(post?.tags?.join(", ") || "");
+  const [activeTab, setActiveTab] = useState<string>("editor");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const navigate = useNavigate();
@@ -174,18 +177,30 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your post content here..."
-              rows={10}
-              required
-              className="font-mono"
-            />
-            <p className="text-sm text-muted-foreground">
-              You can use HTML tags for formatting.
-            </p>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="editor">Editor</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+              </TabsList>
+              <TabsContent value="editor" className="mt-2">
+                <RichTextEditor 
+                  value={content} 
+                  onChange={setContent} 
+                />
+              </TabsContent>
+              <TabsContent value="preview" className="mt-2 border rounded-md p-4">
+                {content ? (
+                  <div 
+                    className="blog-content" 
+                    dangerouslySetInnerHTML={{ __html: content }} 
+                  />
+                ) : (
+                  <p className="text-muted-foreground italic">
+                    No content to preview yet. Start writing in the editor tab.
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
           
           <div className="flex justify-end space-x-2">

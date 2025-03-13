@@ -9,16 +9,147 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_auth: {
+        Row: {
+          created_at: string
+          id: string
+          pin_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pin_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pin_hash?: string
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          content: string
+          date: string
+          id: string
+          name: string
+          post_id: string
+        }
+        Insert: {
+          content: string
+          date?: string
+          id?: string
+          name: string
+          post_id: string
+        }
+        Update: {
+          content?: string
+          date?: string
+          id?: string
+          name?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          author: string
+          category: string
+          content: string
+          created_at: string
+          excerpt: string
+          featured_image: string
+          id: string
+          published_date: string
+          slug: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          category: string
+          content: string
+          created_at?: string
+          excerpt: string
+          featured_image: string
+          id?: string
+          published_date?: string
+          slug: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          category?: string
+          content?: string
+          created_at?: string
+          excerpt?: string
+          featured_image?: string
+          id?: string
+          published_date?: string
+          slug?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          session_id: string
+          type: Database["public"]["Enums"]["reaction_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          session_id: string
+          type: Database["public"]["Enums"]["reaction_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          session_id?: string
+          type?: Database["public"]["Enums"]["reaction_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      verify_admin_pin: {
+        Args: {
+          input_pin: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      reaction_type: "like" | "love" | "clap"
     }
     CompositeTypes: {
       [_ in never]: never

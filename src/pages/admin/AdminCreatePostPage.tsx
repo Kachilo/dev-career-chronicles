@@ -8,9 +8,9 @@ const AdminCreatePostPage = () => {
   const { addPost } = useBlog();
   const navigate = useNavigate();
 
-  const handleAddPost = (postData: any) => {
+  const handleAddPost = async (postData: any) => {
     try {
-      addPost(postData);
+      await addPost(postData);
       toast.success("Post created successfully!");
       navigate("/admin/posts");
     } catch (error) {

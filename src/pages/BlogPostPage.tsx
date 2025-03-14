@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBlog } from "../context/BlogContext";
 import { ReactionButtons } from "../components/ReactionButtons";
@@ -8,22 +8,106 @@ import { ShareButtons } from "../components/ShareButtons";
 import { RelatedPosts } from "../components/RelatedPosts";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User } from "lucide-react";
+import { supabase } from "../integrations/supabase/client";
+import { BlogPost } from "../types/blog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { posts, getPostBySlug, addComment, deleteComment } = useBlog();
+  const { posts, addComment, deleteComment, fetchPosts } = useBlog();
   const navigate = useNavigate();
-  
-  const post = getPostBySlug(slug || "");
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!post && slug) {
-      navigate("/not-found");
-    }
+    const getPostBySlug = async () => {
+      if (!slug) return;
+      
+      setLoading(true);
+      try {
+        // Try to fetch from Supabase directly
+        const { data, error } = await supabase
+          .from("posts")
+          .select(`
+            *,
+            comments (*)
+          `)
+          .eq("slug", slug)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching post:", error);
+          // If not found in Supabase, check local state
+          const localPost = posts.find(p => p.slug === slug);
+          if (localPost) {
+            setPost(localPost);
+          } else {
+            navigate("/not-found");
+          }
+          return;
+        }
+        
+        if (data) {
+          // Transform to match BlogPost type
+          const transformedPost: BlogPost = {
+            id: data.id,
+            title: data.title,
+            slug: data.slug,
+            excerpt: data.excerpt,
+            content: data.content,
+            featuredImage: data.featured_image,
+            category: data.category,
+            tags: data.tags,
+            author: data.author,
+            publishedDate: data.published_date,
+            comments: data.comments || [],
+            reactions: data.reactions || { like: 0, love: 0, clap: 0 }
+          };
+          
+          setPost(transformedPost);
+          
+          // Refresh posts list in context to ensure it's up to date
+          fetchPosts();
+        }
+      } catch (err) {
+        console.error("Error in getPostBySlug:", err);
+        navigate("/not-found");
+      } finally {
+        setLoading(false);
+      }
+    };
     
+    getPostBySlug();
     // Scroll to top on page load
     window.scrollTo(0, 0);
-  }, [post, slug, navigate]);
+  }, [slug, navigate, posts, fetchPosts]);
+  
+  if (loading) {
+    return (
+      <div className="container py-8">
+        <article className="max-w-4xl mx-auto">
+          <header className="mb-8">
+            <Skeleton className="h-6 w-24 mb-4" />
+            <Skeleton className="h-12 w-full mb-4" />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <Skeleton className="w-full h-64 md:h-96 rounded-lg" />
+          </header>
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </article>
+      </div>
+    );
+  }
   
   if (!post) {
     return null;

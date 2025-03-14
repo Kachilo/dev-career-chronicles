@@ -4,9 +4,10 @@ import { BlogCard } from "../components/BlogCard";
 import { useBlog } from "../context/BlogContext";
 import { categories } from "../data/blogData";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const HomePage = () => {
-  const { posts } = useBlog();
+  const { posts, loading } = useBlog();
   const [postsToShow, setPostsToShow] = useState(6);
   
   // Sort posts by date (newest first)
@@ -40,28 +41,46 @@ const HomePage = () => {
         
         <CategoryList categories={categories} />
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {sortedPosts.slice(0, postsToShow).map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
-        </div>
-        
-        {postsToShow < sortedPosts.length && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={loadMore}
-              className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            >
-              Load More
-            </button>
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="border rounded-lg overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-4">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-6 w-full mb-4" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-        
-        {sortedPosts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No articles found</p>
-            <p className="text-muted-foreground mt-2">Create new posts in the admin section to get started</p>
-          </div>
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {sortedPosts.slice(0, postsToShow).map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
+            </div>
+            
+            {postsToShow < sortedPosts.length && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={loadMore}
+                  className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+            
+            {sortedPosts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No articles found</p>
+                <p className="text-muted-foreground mt-2">Create new posts in the admin section to get started</p>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

@@ -18,6 +18,3 @@ export const categories: Category[] = [
     slug: "career",
   },
 ];
-
-// Empty initial blog posts array
-export const blogPosts = [];

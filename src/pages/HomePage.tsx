@@ -1,9 +1,9 @@
 
-import { useState } from "react";
-import { BlogCard } from "../components/BlogCard";
 import { CategoryList } from "../components/CategoryList";
+import { BlogCard } from "../components/BlogCard";
 import { useBlog } from "../context/BlogContext";
 import { categories } from "../data/blogData";
+import { useState } from "react";
 
 const HomePage = () => {
   const { posts } = useBlog();
@@ -13,12 +13,6 @@ const HomePage = () => {
   const sortedPosts = [...posts].sort((a, b) => 
     new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
   );
-  
-  // Get featured post (most recent)
-  const featuredPost = sortedPosts[0];
-  
-  // Get recent posts (excluding featured)
-  const recentPosts = sortedPosts.slice(1, postsToShow);
   
   const loadMore = () => {
     setPostsToShow(prev => prev + 6);
@@ -38,26 +32,16 @@ const HomePage = () => {
         </div>
       </section>
       
-      {/* Featured Post */}
-      {featuredPost && (
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold">Featured Article</h2>
-          </div>
-          <BlogCard post={featuredPost} featured />
-        </section>
-      )}
-      
-      {/* Recent Posts */}
+      {/* All Posts */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">Recent Articles</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">All Articles</h2>
         </div>
         
         <CategoryList categories={categories} />
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recentPosts.map((post) => (
+          {sortedPosts.slice(0, postsToShow).map((post) => (
             <BlogCard key={post.id} post={post} />
           ))}
         </div>
@@ -73,7 +57,7 @@ const HomePage = () => {
           </div>
         )}
         
-        {recentPosts.length === 0 && (
+        {sortedPosts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No articles found</p>
           </div>

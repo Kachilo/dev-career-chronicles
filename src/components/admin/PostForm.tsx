@@ -44,7 +44,7 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
     }
   }, [title, post]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -59,20 +59,20 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
     
     setIsSubmitting(true);
     
-    const postData = {
-      title,
-      slug,
-      excerpt,
-      content,
-      featuredImage,
-      category,
-      tags: tags.split(",").map(tag => tag.trim()).filter(Boolean),
-      author: "Admin", // Could be made dynamic in a more complex implementation
-      publishedDate: post?.publishedDate || new Date().toISOString().split("T")[0]
-    };
-    
-    setTimeout(() => {
-      onSave(postData);
+    try {
+      const postData = {
+        title,
+        slug,
+        excerpt,
+        content,
+        featuredImage,
+        category,
+        tags: tags.split(",").map(tag => tag.trim()).filter(Boolean),
+        author: "Admin", // Could be made dynamic in a more complex implementation
+        publishedDate: post?.publishedDate || new Date().toISOString().split("T")[0]
+      };
+      
+      await onSave(postData);
       
       toast({
         title: post ? "Post updated" : "Post created",
@@ -80,8 +80,16 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
       });
       
       navigate("/admin/posts");
+    } catch (error) {
+      console.error("Error saving post:", error);
+      toast({
+        title: "Error saving post",
+        description: "There was a problem saving your post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   return (

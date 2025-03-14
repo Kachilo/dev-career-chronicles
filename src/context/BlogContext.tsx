@@ -141,23 +141,38 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   // Add a new post
   const addPost = async (post: Omit<BlogPost, "id" | "comments" | "reactions">) => {
     try {
+      console.log("Adding post:", post);
+      
+      // Convert the tags to an array if it's not already
+      const tagsArray = Array.isArray(post.tags) ? post.tags : post.tags || [];
+      
+      // Prepare the data structure for Supabase
+      const postData = {
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        content: post.content,
+        featured_image: post.featuredImage,
+        category: post.category,
+        tags: tagsArray,
+        author: post.author || "Admin",
+        published_date: post.publishedDate || new Date().toISOString()
+      };
+      
+      console.log("Prepared post data:", postData);
+      
       const { data, error } = await supabase
         .from("posts")
-        .insert({
-          title: post.title,
-          slug: post.slug,
-          excerpt: post.excerpt,
-          content: post.content,
-          featured_image: post.featuredImage,
-          category: post.category,
-          tags: post.tags,
-          author: post.author,
-          published_date: post.publishedDate || new Date().toISOString()
-        })
+        .insert(postData)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
+      }
+      
+      console.log("Supabase response:", data);
       
       const newPost: BlogPost = {
         id: data.id,
@@ -179,13 +194,20 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       };
       
       setPosts((prevPosts) => [newPost, ...prevPosts]);
+      
+      toast({
+        title: "Post Added",
+        description: "Your new post has been published successfully."
+      });
+      
     } catch (error) {
       console.error("Error adding post:", error);
       toast({
         title: "Error",
-        description: "Failed to add the post.",
+        description: "Failed to add the post. Please check console for details.",
         variant: "destructive"
       });
+      throw error;
     }
   };
 

@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ThumbsUp, Award } from "lucide-react";
 import { Reactions } from "../types/blog";
 import { useToast } from "@/hooks/use-toast";
-import { useBlog } from "../context/BlogContext";
 
 interface ReactionButtonsProps {
   postId: string;
@@ -19,56 +18,33 @@ export const ReactionButtons = ({ postId, initialReactions }: ReactionButtonsPro
     clap: false
   });
   const { toast } = useToast();
-  const { addReaction } = useBlog();
 
-  // Check if user has reacted to this post (based on localStorage)
-  useEffect(() => {
-    const sessionId = localStorage.getItem("blog-session-id");
-    if (sessionId) {
-      const storedReactions = localStorage.getItem(`reactions-${postId}`);
-      if (storedReactions) {
-        setUserReactions(JSON.parse(storedReactions));
-      }
-    }
-  }, [postId]);
-
-  // Update reactions when initialReactions change
-  useEffect(() => {
-    setReactions(initialReactions);
-  }, [initialReactions]);
-
-  const handleReaction = async (type: keyof Reactions) => {
-    try {
-      // Call the addReaction method from BlogContext
-      await addReaction(postId, type);
+  const handleReaction = (type: keyof Reactions) => {
+    if (userReactions[type]) {
+      // Remove reaction
+      setReactions(prev => ({
+        ...prev,
+        [type]: Math.max(0, prev[type] - 1)
+      }));
+      setUserReactions(prev => ({
+        ...prev,
+        [type]: false
+      }));
+    } else {
+      // Add reaction
+      setReactions(prev => ({
+        ...prev,
+        [type]: prev[type] + 1
+      }));
+      setUserReactions(prev => ({
+        ...prev,
+        [type]: true
+      }));
       
-      // Update local state based on previous state
-      setUserReactions(prev => {
-        const newState = {
-          ...prev,
-          [type]: !prev[type]
-        };
-        
-        // Save to localStorage
-        localStorage.setItem(`reactions-${postId}`, JSON.stringify(newState));
-        
-        return newState;
-      });
-      
-      // Show toast only when adding a reaction, not when removing
-      if (!userReactions[type]) {
-        toast({
-          title: "Thanks for your reaction!",
-          description: `You ${type}d this post.`,
-          duration: 2000,
-        });
-      }
-    } catch (error) {
-      console.error("Error handling reaction:", error);
       toast({
-        title: "Error",
-        description: "Failed to register your reaction. Please try again.",
-        variant: "destructive"
+        title: "Thanks for your reaction!",
+        description: `You ${type}d this post.`,
+        duration: 2000,
       });
     }
   };

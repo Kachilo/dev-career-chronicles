@@ -1,19 +1,24 @@
 
-import { CategoryList } from "../components/CategoryList";
+import { useState } from "react";
 import { BlogCard } from "../components/BlogCard";
+import { CategoryList } from "../components/CategoryList";
 import { useBlog } from "../context/BlogContext";
 import { categories } from "../data/blogData";
-import { useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const HomePage = () => {
-  const { posts, loading } = useBlog();
+  const { posts } = useBlog();
   const [postsToShow, setPostsToShow] = useState(6);
   
   // Sort posts by date (newest first)
   const sortedPosts = [...posts].sort((a, b) => 
     new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
   );
+  
+  // Get featured post (most recent)
+  const featuredPost = sortedPosts[0];
+  
+  // Get recent posts (excluding featured)
+  const recentPosts = sortedPosts.slice(1, postsToShow);
   
   const loadMore = () => {
     setPostsToShow(prev => prev + 6);
@@ -33,54 +38,45 @@ const HomePage = () => {
         </div>
       </section>
       
-      {/* All Posts */}
+      {/* Featured Post */}
+      {featuredPost && (
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Article</h2>
+          </div>
+          <BlogCard post={featuredPost} featured />
+        </section>
+      )}
+      
+      {/* Recent Posts */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">All Articles</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">Recent Articles</h2>
         </div>
         
         <CategoryList categories={categories} />
         
-        {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="border rounded-lg overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <div className="p-4">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-6 w-full mb-4" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              </div>
-            ))}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {recentPosts.map((post) => (
+            <BlogCard key={post.id} post={post} />
+          ))}
+        </div>
+        
+        {postsToShow < sortedPosts.length && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={loadMore}
+              className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            >
+              Load More
+            </button>
           </div>
-        ) : (
-          <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {sortedPosts.slice(0, postsToShow).map((post) => (
-                <BlogCard key={post.id} post={post} />
-              ))}
-            </div>
-            
-            {postsToShow < sortedPosts.length && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-            
-            {sortedPosts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No articles found</p>
-                <p className="text-muted-foreground mt-2">Create new posts in the admin section to get started</p>
-              </div>
-            )}
-          </>
+        )}
+        
+        {recentPosts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No articles found</p>
+          </div>
         )}
       </section>
     </div>

@@ -17,6 +17,7 @@ import AdminPostsPage from "./pages/admin/AdminPostsPage";
 import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
+import AdminImportDataPage from "./pages/admin/AdminImportDataPage";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
                   <Route path="posts/new" element={<AdminCreatePostPage />} />
                   <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
+                  <Route path="import" element={<AdminImportDataPage />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />

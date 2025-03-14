@@ -1,1 +1,5 @@
+
 project_id = "gaoefidvihsmqptmcjqr"
+
+[functions.import-initial-posts]
+verify_jwt = false

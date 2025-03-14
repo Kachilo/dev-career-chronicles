@@ -60,6 +60,7 @@ const HomePage = () => {
         {sortedPosts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No articles found</p>
+            <p className="text-muted-foreground mt-2">Create new posts in the admin section to get started</p>
           </div>
         )}
       </section>

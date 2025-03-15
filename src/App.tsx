@@ -12,11 +12,13 @@ import HomePage from "./pages/HomePage";
 import BlogPostPage from "./pages/BlogPostPage";
 import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
+import ContactPage from "./pages/ContactPage";
 import AdminPage from "./pages/admin/AdminPage";
 import AdminPostsPage from "./pages/admin/AdminPostsPage";
 import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ const App = () => (
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/categories/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
+                <Route path="/contact" element={<ContactPage />} />
                 
                 <Route path="/admin" element={<AdminPage />}>
                   <Route index element={<AdminPostsPage />} />
@@ -48,6 +51,7 @@ const App = () => (
               </Routes>
             </main>
             <Footer />
+            <WhatsAppButton />
           </div>
         </BrowserRouter>
       </TooltipProvider>

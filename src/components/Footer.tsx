@@ -15,7 +15,7 @@ const Footer = () => {
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">Categories</h3>
+            <h3 className="text-lg font-bold">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/categories/freelancing" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -30,6 +30,11 @@ const Footer = () => {
               <li>
                 <Link to="/categories/career" className="text-muted-foreground hover:text-foreground transition-colors">
                   Career Growth
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -51,6 +56,9 @@ const Footer = () => {
             </Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
+            </Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">
+              Contact
             </Link>
           </div>
         </div>

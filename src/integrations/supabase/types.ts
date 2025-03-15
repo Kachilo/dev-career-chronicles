@@ -90,6 +90,7 @@ export type Database = {
           featured_image: string
           id: string
           published_date: string
+          reactions: Json | null
           slug: string
           tags: string[]
           title: string
@@ -104,6 +105,7 @@ export type Database = {
           featured_image: string
           id?: string
           published_date?: string
+          reactions?: Json | null
           slug: string
           tags?: string[]
           title: string
@@ -118,6 +120,7 @@ export type Database = {
           featured_image?: string
           id?: string
           published_date?: string
+          reactions?: Json | null
           slug?: string
           tags?: string[]
           title?: string

@@ -47,24 +47,53 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         console.log("Posts fetched successfully:", data);
         
         // Transform the Supabase post data to match our BlogPost structure
-        const blogPosts: BlogPost[] = data.map((post) => ({
-          id: post.id,
-          title: post.title,
-          slug: post.slug,
-          excerpt: post.excerpt,
-          content: post.content,
-          featuredImage: post.featured_image,
-          category: post.category,
-          tags: post.tags || [],
-          author: post.author,
-          publishedDate: post.published_date,
-          comments: [],
-          reactions: post.reactions || {
+        const blogPosts: BlogPost[] = data.map((post) => {
+          // Parse reactions from JSONB if it exists, or create default
+          let reactions = {
             like: 0,
             love: 0,
             clap: 0
+          };
+          
+          if (post.reactions) {
+            try {
+              // If it's already a JS object, use it directly
+              if (typeof post.reactions === 'object') {
+                reactions = {
+                  like: post.reactions.like || 0,
+                  love: post.reactions.love || 0,
+                  clap: post.reactions.clap || 0
+                };
+              } 
+              // Otherwise try to parse it from JSON string
+              else if (typeof post.reactions === 'string') {
+                const parsed = JSON.parse(post.reactions);
+                reactions = {
+                  like: parsed.like || 0,
+                  love: parsed.love || 0,
+                  clap: parsed.clap || 0
+                };
+              }
+            } catch (e) {
+              console.error("Error parsing reactions:", e);
+            }
           }
-        }));
+          
+          return {
+            id: post.id,
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt,
+            content: post.content,
+            featuredImage: post.featured_image,
+            category: post.category,
+            tags: post.tags || [],
+            author: post.author,
+            publishedDate: post.published_date,
+            comments: [],
+            reactions: reactions
+          };
+        });
         
         setPosts(blogPosts);
       } catch (error) {
@@ -91,7 +120,12 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           category: post.category,
           tags: post.tags,
           author: post.author,
-          published_date: new Date().toISOString()
+          published_date: new Date().toISOString(),
+          reactions: {
+            like: 0,
+            love: 0,
+            clap: 0
+          }
         })
         .select();
       
@@ -146,6 +180,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       if (postData.category) supabaseData.category = postData.category;
       if (postData.tags) supabaseData.tags = postData.tags;
       if (postData.author) supabaseData.author = postData.author;
+      if (postData.reactions) supabaseData.reactions = postData.reactions;
       
       // Update post in Supabase
       const { error } = await supabase

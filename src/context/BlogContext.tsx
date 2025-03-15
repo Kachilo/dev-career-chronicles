@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BlogPost, Comment } from "../types/blog";
@@ -35,6 +34,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log("Fetching posts from Supabase...");
         const { data, error } = await supabase
           .from("posts")
           .select("*");
@@ -43,6 +43,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           console.error("Error fetching posts:", error);
           return;
         }
+        
+        console.log("Posts fetched successfully:", data);
         
         // Transform the Supabase post data to match our BlogPost structure
         const blogPosts: BlogPost[] = data.map((post) => ({
@@ -57,7 +59,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           author: post.author,
           publishedDate: post.published_date,
           comments: [],
-          reactions: {
+          reactions: post.reactions || {
             like: 0,
             love: 0,
             clap: 0
@@ -75,6 +77,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
   const addPost = async (post: Omit<BlogPost, "id" | "comments" | "reactions">) => {
     try {
+      console.log("Adding post to Supabase:", post);
+      
       // Insert post into Supabase
       const { data, error } = await supabase
         .from("posts")
@@ -89,26 +93,32 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           author: post.author,
           published_date: new Date().toISOString()
         })
-        .select()
-        .single();
+        .select();
       
       if (error) {
         console.error("Error adding post:", error);
         return;
       }
       
+      if (!data || data.length === 0) {
+        console.error("No data returned after insert");
+        return;
+      }
+      
+      console.log("Post added successfully:", data[0]);
+      
       // Create a new post object with the structure needed for our application
       const newPost: BlogPost = {
-        id: data.id,
-        title: data.title,
-        slug: data.slug,
-        excerpt: data.excerpt,
-        content: data.content,
-        featuredImage: data.featured_image,
-        category: data.category,
-        tags: data.tags || [],
-        author: data.author,
-        publishedDate: data.published_date,
+        id: data[0].id,
+        title: data[0].title,
+        slug: data[0].slug,
+        excerpt: data[0].excerpt,
+        content: data[0].content,
+        featuredImage: data[0].featured_image,
+        category: data[0].category,
+        tags: data[0].tags || [],
+        author: data[0].author,
+        publishedDate: data[0].published_date,
         comments: [],
         reactions: {
           like: 0,

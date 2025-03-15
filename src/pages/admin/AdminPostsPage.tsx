@@ -17,7 +17,7 @@ const AdminPostsPage = () => {
     
     toast({
       title: "Post deleted",
-      description: "The post has been removed successfully.",
+      description: "The post has been removed successfully."
     });
   };
 

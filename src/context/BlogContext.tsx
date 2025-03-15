@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BlogPost, Comment } from "../types/blog";
@@ -59,10 +60,11 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             try {
               // If it's already a JS object, use it directly
               if (typeof post.reactions === 'object') {
+                const reactionsObj = post.reactions as Record<string, any>;
                 reactions = {
-                  like: post.reactions.like || 0,
-                  love: post.reactions.love || 0,
-                  clap: post.reactions.clap || 0
+                  like: reactionsObj.like || 0,
+                  love: reactionsObj.love || 0,
+                  clap: reactionsObj.clap || 0
                 };
               } 
               // Otherwise try to parse it from JSON string
@@ -96,6 +98,11 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         });
         
         setPosts(blogPosts);
+        
+        // After loading posts, fetch comments for each post
+        blogPosts.forEach(post => {
+          fetchCommentsForPost(post.id);
+        });
       } catch (error) {
         console.error("Failed to fetch posts:", error);
       }
@@ -103,6 +110,42 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
     fetchPosts();
   }, []);
+  
+  // Function to fetch comments for a specific post
+  const fetchCommentsForPost = async (postId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("post_id", postId)
+        .order("date", { ascending: false });
+        
+      if (error) {
+        console.error(`Error fetching comments for post ${postId}:`, error);
+        return;
+      }
+      
+      console.log(`Comments fetched for post ${postId}:`, data);
+      
+      const comments: Comment[] = data.map(comment => ({
+        id: comment.id,
+        name: comment.name,
+        content: comment.content,
+        date: comment.date
+      }));
+      
+      // Update post with comments
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, comments } 
+            : post
+        )
+      );
+    } catch (error) {
+      console.error(`Failed to fetch comments for post ${postId}:`, error);
+    }
+  };
 
   const addPost = async (post: Omit<BlogPost, "id" | "comments" | "reactions">) => {
     try {
@@ -237,18 +280,25 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     
     try {
       // Add comment to Supabase
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("comments")
         .insert({
           post_id: postId,
           name: comment.name,
           content: comment.content,
           date: newComment.date
-        });
+        })
+        .select();
       
       if (error) {
         console.error("Error adding comment:", error);
         return;
+      }
+      
+      console.log("Comment added successfully:", data);
+      
+      if (data && data.length > 0) {
+        newComment.id = data[0].id;
       }
       
       // Update posts in local state

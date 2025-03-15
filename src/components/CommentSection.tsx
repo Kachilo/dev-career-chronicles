@@ -42,7 +42,7 @@ export const CommentSection = ({
     
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
       onAddComment({
         name: name.trim(),
         content: content.trim(),
@@ -55,17 +55,34 @@ export const CommentSection = ({
       
       setName("");
       setContent("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post your comment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   const handleDelete = (commentId: string) => {
-    onDeleteComment(commentId);
-    
-    toast({
-      title: "Comment deleted",
-      description: "The comment has been removed.",
-    });
+    try {
+      onDeleteComment(commentId);
+      
+      toast({
+        title: "Comment deleted",
+        description: "The comment has been removed.",
+      });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the comment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

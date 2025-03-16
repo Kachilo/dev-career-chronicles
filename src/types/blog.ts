@@ -19,14 +19,6 @@ export interface Comment {
   name: string;
   content: string;
   date: string;
-  replies?: Reply[];
-}
-
-export interface Reply {
-  id: string;
-  name: string;
-  content: string;
-  date: string;
 }
 
 export interface Reactions {

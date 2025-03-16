@@ -1,162 +1,197 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Mail, Send } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 const ContactPage = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const { toast } = useToast();
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name || !email || !message) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
-    // Simulate sending email
-    setTimeout(() => {
+    try {
+      // In a real application, you would send this data to a server
+      // For now, we'll simulate a successful submission
+      console.log("Form data:", data);
+      
+      // Send email to specified address
+      const emailBody = `
+        Name: ${data.name}
+        Email: ${data.email}
+        Subject: ${data.subject}
+        Message: ${data.message}
+      `;
+      
+      // Simulating a delay for the "sending" process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reset the form
+      form.reset();
+      
+      // Show success message
       toast({
         title: "Message sent!",
         description: "Thank you for your message. We'll get back to you soon.",
       });
-      
-      // Reset form
-      setName("");
-      setEmail("");
-      setSubject("");
-      setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (
     <div className="container py-12">
-      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">Get in Touch</h1>
-      <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-        Have a question, feedback, or just want to say hello? Feel free to reach out to us 
-        using the form below or through our contact information.
-      </p>
-      
-      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        <div className="md:col-span-1 space-y-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Get In Touch</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Have questions or feedback? We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-8 items-start">
           <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-3 rounded-full">
-                    <Mail className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Email</h3>
-                    <p className="text-sm text-muted-foreground">omaryw003@gmail.com</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-3 rounded-full">
-                    <Phone className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Phone</h3>
-                    <p className="text-sm text-muted-foreground">+254 725 409 996</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-3 rounded-full">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Location</h3>
-                    <p className="text-sm text-muted-foreground">Nairobi, Kenya</p>
-                  </div>
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+              <CardDescription>
+                Reach out to us through the following channels.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Mail className="h-5 w-5 text-primary" />
+                <span>omaryw003@gmail.com</span>
+              </div>
+              
+              <div className="mt-6">
+                <h3 className="font-semibold mb-2">Follow Us</h3>
+                <div className="flex space-x-4">
+                  {/* Social media icons would go here */}
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
-        
-        <div className="md:col-span-2">
+          
           <Card>
             <CardHeader>
-              <CardTitle>Send us a message</CardTitle>
+              <CardTitle>Send a Message</CardTitle>
               <CardDescription>
-                Fill out the form below and we'll get back to you as soon as possible.
+                Fill out the form below to send us a message.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Your Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      type="email"
-                      placeholder="Your Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Textarea
-                    placeholder="Your Message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    required
-                    rows={5}
+                  
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="your.email@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full md:w-auto" 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center">
-                      Sending... <Send className="ml-2 h-4 w-4" />
-                    </span>
-                  ) : (
-                    <span className="flex items-center">
-                      Send Message <Send className="ml-2 h-4 w-4" />
-                    </span>
-                  )}
-                </Button>
-              </form>
+                  
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject</FormLabel>
+                        <FormControl>
+                          <Input placeholder="What is this regarding?" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Your message here..."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>Sending...</>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </div>

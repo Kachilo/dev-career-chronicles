@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBlog } from "../context/BlogContext";
-import { ReactionButtons } from "../components/ReactionButtons";
 import { CommentSection } from "../components/CommentSection";
 import { ShareButtons } from "../components/ShareButtons";
 import { RelatedPosts } from "../components/RelatedPosts";
@@ -11,7 +10,7 @@ import { Calendar, User } from "lucide-react";
 
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { posts, getPostBySlug, addComment, deleteComment } = useBlog();
+  const { posts, getPostBySlug, addComment, deleteComment, addReply, deleteReply } = useBlog();
   const navigate = useNavigate();
   
   const post = getPostBySlug(slug || "");
@@ -83,12 +82,7 @@ const BlogPostPage = () => {
         />
         
         <div className="mt-8 pt-6 border-t">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <ReactionButtons 
-              postId={post.id} 
-              initialReactions={post.reactions} 
-            />
-            
+          <div className="flex justify-end">
             <ShareButtons title={post.title} url={postUrl} />
           </div>
         </div>
@@ -99,6 +93,8 @@ const BlogPostPage = () => {
             comments={post.comments}
             onAddComment={(comment) => addComment(post.id, comment)}
             onDeleteComment={(commentId) => deleteComment(post.id, commentId)}
+            onAddReply={(commentId, reply) => addReply(post.id, commentId, reply)}
+            onDeleteReply={(commentId, replyId) => deleteReply(post.id, commentId, replyId)}
           />
         </div>
         

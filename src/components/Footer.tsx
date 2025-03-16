@@ -1,64 +1,62 @@
 
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "./ThemeToggle";
 import { Newsletter } from "./Newsletter";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="border-t">
-      <div className="container py-12 md:py-16">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">DevInsights</h3>
-            <p className="text-muted-foreground max-w-xs">
-              Insights on freelancing, web development, and career development for modern professionals.
+    <footer className="border-t py-10 mt-10 bg-card">
+      <div className="container">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <Link to="/" className="text-2xl font-bold">BlogApp</Link>
+            <p className="mt-2 text-muted-foreground">
+              A platform for quality content and knowledge sharing.
             </p>
+            <div className="mt-4">
+              <ThemeToggle />
+            </div>
           </div>
           
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Quick Links</h3>
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/categories/freelancing" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Freelancing
+                <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Home
                 </Link>
               </li>
               <li>
-                <Link to="/categories/web-development" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Web Development
-                </Link>
-              </li>
-              <li>
-                <Link to="/categories/career" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Career Growth
+                <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Contact Us
+                  Contact
                 </Link>
               </li>
             </ul>
           </div>
           
-          <div className="space-y-4">
+          <div className="lg:col-span-2">
             <Newsletter />
           </div>
         </div>
         
-        <div className="mt-12 pt-6 border-t flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} DevInsights. All rights reserved.
-          </p>
-          
-          <div className="mt-4 md:mt-0 flex items-center space-x-4 text-sm text-muted-foreground">
-            <Link to="/privacy" className="hover:text-foreground transition-colors">
+        <div className="mt-10 pt-6 border-t text-center text-muted-foreground text-sm">
+          <p>© {currentYear} BlogApp. All rights reserved.</p>
+          <div className="mt-2 flex justify-center gap-4">
+            <Link to="#" className="hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">
+            <Link to="#" className="hover:text-foreground transition-colors">
               Terms of Service
             </Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">
-              Contact
+              Contact Us
             </Link>
           </div>
         </div>

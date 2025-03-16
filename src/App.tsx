@@ -19,6 +19,7 @@ import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
 import WhatsAppButton from "./components/WhatsAppButton";
+import { WelcomePopup } from "./components/WelcomePopup";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             </main>
             <Footer />
             <WhatsAppButton />
+            <WelcomePopup />
           </div>
         </BrowserRouter>
       </TooltipProvider>

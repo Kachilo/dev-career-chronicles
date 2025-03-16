@@ -20,7 +20,8 @@ const WhatsAppButton = () => {
   }, []);
 
   const openWhatsApp = () => {
-    window.open(`https://wa.me/254725409996`, "_blank");
+    const phoneNumber = "254725409996";
+    window.open(`https://wa.me/${phoneNumber}`, "_blank");
   };
 
   return (

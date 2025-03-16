@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBlog } from "../context/BlogContext";
-import { ReactionButtons } from "../components/ReactionButtons";
 import { CommentSection } from "../components/CommentSection";
 import { ShareButtons } from "../components/ShareButtons";
 import { RelatedPosts } from "../components/RelatedPosts";
@@ -83,14 +82,7 @@ const BlogPostPage = () => {
         />
         
         <div className="mt-8 pt-6 border-t">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <ReactionButtons 
-              postId={post.id} 
-              initialReactions={post.reactions} 
-            />
-            
-            <ShareButtons title={post.title} url={postUrl} />
-          </div>
+          <ShareButtons title={post.title} url={postUrl} />
         </div>
         
         <div className="mt-12">

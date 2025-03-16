@@ -1,162 +1,168 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Comment } from "../types/blog";
-import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from 'date-fns';
 
 interface CommentSectionProps {
   postId: string;
   comments: Comment[];
-  onAddComment: (comment: Omit<Comment, "id" | "date">) => void;
+  onAddComment: (comment: Omit<Comment, "id" | "date" | "replies">) => void;
   onDeleteComment: (commentId: string) => void;
-  isAdmin?: boolean;
 }
 
-export const CommentSection = ({ 
-  postId, 
-  comments, 
+export const CommentSection = ({
+  postId,
+  comments,
   onAddComment,
   onDeleteComment,
-  isAdmin = false
 }: CommentSectionProps) => {
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyName, setReplyName] = useState("");
+  const [replyContent, setReplyContent] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !content.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Please provide your name and comment.",
-        variant: "destructive",
-      });
+    if (name.trim() === "" || content.trim() === "") {
       return;
     }
     
-    setIsSubmitting(true);
-    
-    try {
-      onAddComment({
-        name: name.trim(),
-        content: content.trim(),
-      });
-      
-      toast({
-        title: "Comment added",
-        description: "Your comment has been posted successfully!",
-      });
-      
-      setName("");
-      setContent("");
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      toast({
-        title: "Error",
-        description: "Failed to post your comment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    onAddComment({ name, content });
+    setName("");
+    setContent("");
   };
 
-  const handleDelete = (commentId: string) => {
+  const handleReplySubmit = (e: React.FormEvent, commentId: string) => {
+    e.preventDefault();
+    
+    if (replyName.trim() === "" || replyContent.trim() === "") {
+      return;
+    }
+    
+    // Here we would normally call something like onAddReply
+    // But since we don't have that functionality yet, we'll add a comment mentioning the reply
+    const replyText = `@${commentId.substring(0, 6)} - ${replyContent}`;
+    onAddComment({ name: replyName, content: replyText });
+    
+    setReplyingTo(null);
+    setReplyName("");
+    setReplyContent("");
+  };
+
+  const formatCommentTime = (dateString: string) => {
     try {
-      onDeleteComment(commentId);
-      
-      toast({
-        title: "Comment deleted",
-        description: "The comment has been removed.",
-      });
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch (error) {
-      console.error("Error deleting comment:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the comment. Please try again.",
-        variant: "destructive",
-      });
+      return "some time ago";
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <MessageSquare className="h-5 w-5" />
-        <h3 className="text-xl font-bold">
-          Comments ({comments.length})
-        </h3>
-      </div>
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Comments</h2>
       
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Leave a comment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Textarea
-                placeholder="Share your thoughts..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                rows={4}
-              />
-            </div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Posting..." : "Post Comment"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <form onSubmit={handleSubmit} className="mb-8">
+        <div className="space-y-4">
+          <div>
+            <Input
+              type="text"
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full"
+            />
+          </div>
+          
+          <div>
+            <Textarea
+              placeholder="Write a comment..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              className="min-h-[100px] w-full"
+            />
+          </div>
+          
+          <Button type="submit">Post Comment</Button>
+        </div>
+      </form>
       
       {comments.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {comments.map((comment) => (
-            <Card key={comment.id}>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-bold">{comment.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(comment.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(comment.id)}
-                      aria-label="Delete comment"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+            <div key={comment.id} className="border-b pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-medium">{comment.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {formatCommentTime(comment.date)}
                 </div>
-                <p className="mt-2">{comment.content}</p>
-              </CardContent>
-            </Card>
+              </div>
+              
+              <p className="mb-3">{comment.content}</p>
+              
+              <div className="flex justify-between items-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                >
+                  {replyingTo === comment.id ? "Cancel" : "Reply"}
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => onDeleteComment(comment.id)}
+                >
+                  Delete
+                </Button>
+              </div>
+              
+              {replyingTo === comment.id && (
+                <form 
+                  onSubmit={(e) => handleReplySubmit(e, comment.id)} 
+                  className="mt-4 pl-4 border-l-2 border-gray-200"
+                >
+                  <div className="space-y-3">
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="Your Name"
+                        value={replyName}
+                        onChange={(e) => setReplyName(e.target.value)}
+                        required
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Textarea
+                        placeholder="Your reply..."
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        required
+                        className="min-h-[80px] w-full"
+                      />
+                    </div>
+                    
+                    <Button type="submit" size="sm">Submit Reply</Button>
+                  </div>
+                </form>
+              )}
+            </div>
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground">
-          No comments yet. Be the first to share your thoughts!
-        </p>
+        <div className="text-center py-10 text-muted-foreground">
+          No comments yet. Be the first to comment!
+        </div>
       )}
     </div>
   );

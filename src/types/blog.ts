@@ -50,6 +50,7 @@ export interface Poll {
   options: PollOption[];
   endDate: string;
   postId?: string;
+  reference?: string; // Added reference field
 }
 
 export interface PollOption {

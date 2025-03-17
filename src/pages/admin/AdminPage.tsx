@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PenLine, Users } from "lucide-react";
+import { PenLine, Users, BarChart2 } from "lucide-react";
 import { AdminPinScreen } from "../../components/admin/AdminPinScreen";
 
 const AdminPage = () => {
@@ -15,6 +15,7 @@ const AdminPage = () => {
   
   const isPostsPath = location.pathname === "/admin" || location.pathname === "/admin/posts";
   const isCommentsPath = location.pathname === "/admin/comments";
+  const isPollsPath = location.pathname === "/admin/polls";
 
   return (
     <div className="container py-8">
@@ -39,6 +40,16 @@ const AdminPage = () => {
             <Link to="/admin/comments">
               <Users className="h-4 w-4 mr-2" />
               Manage Comments
+            </Link>
+          </Button>
+          
+          <Button
+            variant={isPollsPath ? "default" : "outline"}
+            asChild
+          >
+            <Link to="/admin/polls">
+              <BarChart2 className="h-4 w-4 mr-2" />
+              Manage Polls
             </Link>
           </Button>
         </div>

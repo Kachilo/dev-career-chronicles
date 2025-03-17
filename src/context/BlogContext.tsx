@@ -480,30 +480,73 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   };
 
-  const addPoll = (poll: Omit<Poll, "id">) => {
-    const newPoll: Poll = {
-      ...poll,
-      id: uuidv4()
-    };
-    
-    setPolls((prevPolls) => [...prevPolls, newPoll]);
+  const addPoll = async (poll: Omit<Poll, "id">) => {
+    try {
+      const newPoll: Poll = {
+        ...poll,
+        id: uuidv4()
+      };
+      
+      try {
+        const { data, error } = await supabase
+          .from("polls")
+          .insert(newPoll)
+          .select();
+        
+        if (error) {
+          console.error("Error storing poll in Supabase:", error);
+        } else if (data && data.length > 0) {
+          console.log("Poll stored in Supabase:", data[0]);
+          newPoll.id = data[0].id;
+        }
+      } catch (e) {
+        console.error("Supabase poll storage failed:", e);
+      }
+      
+      setPolls((prevPolls) => [...prevPolls, newPoll]);
+      console.log("New poll added:", newPoll);
+    } catch (error) {
+      console.error("Failed to add poll:", error);
+    }
   };
   
-  const votePoll = (pollId: string, optionId: string) => {
-    setPolls((prevPolls) =>
-      prevPolls.map((poll) =>
-        poll.id === pollId
-          ? {
-              ...poll,
-              options: poll.options.map((option) =>
-                option.id === optionId
-                  ? { ...option, votes: option.votes + 1 }
-                  : option
-              )
-            }
-          : poll
-      )
-    );
+  const votePoll = async (pollId: string, optionId: string) => {
+    try {
+      setPolls((prevPolls) =>
+        prevPolls.map((poll) =>
+          poll.id === pollId
+            ? {
+                ...poll,
+                options: poll.options.map((option) =>
+                  option.id === optionId
+                    ? { ...option, votes: option.votes + 1 }
+                    : option
+                )
+              }
+            : poll
+        )
+      );
+      
+      const poll = polls.find(p => p.id === pollId);
+      if (poll) {
+        try {
+          const { error } = await supabase
+            .from("polls")
+            .update({ options: poll.options.map(opt => 
+              opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
+            )})
+            .eq("id", pollId);
+          
+          if (error) {
+            console.error("Error updating poll votes in Supabase:", error);
+          }
+        } catch (e) {
+          console.error("Supabase poll vote update failed:", e);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to vote on poll:", error);
+    }
   };
 
   return (

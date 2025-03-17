@@ -1,110 +1,127 @@
 
-import { useState } from "react";
-import { useBlog } from "../../context/BlogContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
-import { CalendarDateRangePicker } from "../../components/ui/date-range-picker";
+import { Eye, ThumbsUp, MessageSquare, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useBlog } from "@/context/BlogContext";
 
 const AnalyticsDashboard = () => {
   const { posts } = useBlog();
+  const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-    to: new Date(),
+    from: new Date(new Date().setDate(new Date().getDate() - 30)), 
+    to: new Date()
   });
-
-  // Calculate total views
-  const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
   
-  // Calculate total comments
-  const totalComments = posts.reduce((sum, post) => sum + post.comments.length, 0);
+  const [filteredPosts, setFilteredPosts] = useState(posts);
   
-  // Calculate average comments per post
-  const avgCommentsPerPost = posts.length ? (totalComments / posts.length).toFixed(1) : "0";
+  useEffect(() => {
+    // Filter posts based on date range
+    if (dateRange.from && dateRange.to) {
+      const filtered = posts.filter(post => {
+        const postDate = new Date(post.publishedDate);
+        return postDate >= dateRange.from && postDate <= dateRange.to;
+      });
+      setFilteredPosts(filtered);
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [posts, dateRange]);
   
-  // Generate view data for bar chart
-  const viewsData = posts
-    .slice(0, 10) // Top 10 posts
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .map(post => ({
-      name: post.title.length > 20 ? post.title.substring(0, 20) + "..." : post.title,
-      views: post.views || 0,
-    }));
-    
-  // Generate category data for pie chart
-  const categoryData = posts.reduce((acc, post) => {
-    acc[post.category] = (acc[post.category] || 0) + (post.views || 0);
-    return acc;
-  }, {} as Record<string, number>);
+  // Calculate analytics data
+  const totalViews = filteredPosts.reduce((sum, post) => sum + (post.views || 0), 0);
+  const totalComments = filteredPosts.reduce((sum, post) => sum + post.comments.length, 0);
+  const totalReactions = filteredPosts.reduce((sum, post) => {
+    const reactions = post.reactions;
+    return sum + reactions.like + reactions.love + reactions.clap;
+  }, 0);
   
-  const pieData = Object.entries(categoryData).map(([name, value]) => ({
-    name,
-    value,
+  // Format data for charts
+  const viewsChartData = filteredPosts.slice(0, 10).map(post => ({
+    name: post.title.substring(0, 20) + (post.title.length > 20 ? '...' : ''),
+    views: post.views || 0
   }));
   
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
+  // Handle date range change
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range?.from) {
+      setDateRange({
+        from: range.from,
+        to: range.to || range.from
+      });
+    }
+  };
+  
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <CalendarDateRangePicker dateRange={dateRange} onUpdate={setDateRange} />
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+        
+        <DateRangePicker
+          date={dateRange}
+          onDateChange={handleDateRangeChange}
+        />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Total Views</CardTitle>
-            <CardDescription>Across all blog posts</CardDescription>
+            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalViews.toLocaleString()}</div>
+            <div className="flex items-center">
+              <Eye className="mr-2 h-4 w-4 text-muted-foreground" />
+              <div className="text-2xl font-bold">{totalViews}</div>
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Total Comments</CardTitle>
-            <CardDescription>Reader engagement</CardDescription>
+            <CardTitle className="text-sm font-medium">Total Comments</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalComments.toLocaleString()}</div>
+            <div className="flex items-center">
+              <MessageSquare className="mr-2 h-4 w-4 text-muted-foreground" />
+              <div className="text-2xl font-bold">{totalComments}</div>
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Avg Comments</CardTitle>
-            <CardDescription>Per blog post</CardDescription>
+            <CardTitle className="text-sm font-medium">Total Reactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{avgCommentsPerPost}</div>
+            <div className="flex items-center">
+              <ThumbsUp className="mr-2 h-4 w-4 text-muted-foreground" />
+              <div className="text-2xl font-bold">{totalReactions}</div>
+            </div>
           </CardContent>
         </Card>
       </div>
       
-      <Tabs defaultValue="views">
-        <TabsList className="mb-4">
-          <TabsTrigger value="views">Views by Post</TabsTrigger>
-          <TabsTrigger value="categories">Views by Category</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="engagement">Engagement</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="views">
+        <TabsContent value="overview" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Most Viewed Posts</CardTitle>
-              <CardDescription>Top 10 posts by view count</CardDescription>
+              <CardTitle>Views by Post</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={viewsData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                  >
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                  <BarChart data={viewsChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip />
                     <Bar dataKey="views" fill="#8884d8" />
@@ -115,33 +132,65 @@ const AnalyticsDashboard = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="categories">
+        <TabsContent value="content" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Category Distribution</CardTitle>
-              <CardDescription>Views by category</CardDescription>
+              <CardTitle>Popular Content</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={150}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${value} views`, 'Views']} />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {filteredPosts
+                  .sort((a, b) => (b.views || 0) - (a.views || 0))
+                  .slice(0, 5)
+                  .map((post, index) => (
+                    <div key={post.id} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                          {index + 1}
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium">{post.title}</p>
+                          <p className="text-xs text-muted-foreground">{post.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Eye className="h-4 w-4" />
+                        <span>{post.views || 0}</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="engagement" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Engagement</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredPosts
+                  .sort((a, b) => b.comments.length - a.comments.length)
+                  .slice(0, 5)
+                  .map((post, index) => (
+                    <div key={post.id} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                          {index + 1}
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium">{post.title}</p>
+                          <p className="text-xs text-muted-foreground">{post.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{post.comments.length}</span>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </CardContent>
           </Card>

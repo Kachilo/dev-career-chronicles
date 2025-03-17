@@ -22,6 +22,8 @@ import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import ScheduledPostsPage from "./pages/admin/ScheduledPostsPage";
 import WhatsAppButton from "./components/WhatsAppButton";
 import { WelcomePopup } from "./components/WelcomePopup";
+import { ChatSupport } from "./components/ChatSupport";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 const queryClient = new QueryClient();
 

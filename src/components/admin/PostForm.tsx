@@ -1,24 +1,26 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
+import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BlogPost } from "../../types/blog";
-import { categories } from "../../data/blogData";
-import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "./RichTextEditor";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BlogPost } from "@/types/blog";
+import { useBlog } from "@/context/BlogContext";
 
 interface PostFormProps {
   post?: BlogPost;
-  onSave: (postData: Omit<BlogPost, "id" | "comments" | "reactions">) => void;
+  onSubmit?: (post: BlogPost) => void;
 }
 
-export const PostForm = ({ post, onSave }: PostFormProps) => {
+export const PostForm = ({ post, onSubmit }: PostFormProps) => {
+  const navigate = useNavigate();
+  const { addPost, updatePost } = useBlog();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Form state
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [excerpt, setExcerpt] = useState(post?.excerpt || "");
@@ -26,197 +28,180 @@ export const PostForm = ({ post, onSave }: PostFormProps) => {
   const [featuredImage, setFeaturedImage] = useState(post?.featuredImage || "");
   const [category, setCategory] = useState(post?.category || "");
   const [tags, setTags] = useState(post?.tags?.join(", ") || "");
-  const [activeTab, setActiveTab] = useState<string>("editor");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [author, setAuthor] = useState(post?.author || "");
+  const [publishedDate, setPublishedDate] = useState<string>(
+    post?.publishedDate 
+      ? new Date(post.publishedDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0]
+  );
   
   // Auto-generate slug from title
-  useEffect(() => {
-    if (!post && title) {
-      const generatedSlug = title
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    
+    if (!post) { // Only auto-generate slug for new posts
+      const newSlug = newTitle
         .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
+        .replace(/[^\w\s]/gi, "")
         .replace(/\s+/g, "-");
       
-      setSlug(generatedSlug);
+      setSlug(newSlug);
     }
-  }, [title, post]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // Validate form
-    if (!title || !slug || !excerpt || !content || !featuredImage || !category) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    const postData = {
-      title,
-      slug,
-      excerpt,
-      content,
-      featuredImage,
-      category,
-      tags: tags.split(",").map(tag => tag.trim()).filter(Boolean),
-      author: "Admin", // Could be made dynamic in a more complex implementation
-      publishedDate: post?.publishedDate || new Date().toISOString().split("T")[0]
-    };
-    
-    setTimeout(() => {
-      onSave(postData);
+    try {
+      const formData = {
+        title,
+        slug,
+        excerpt,
+        content,
+        featuredImage,
+        category,
+        tags: tags.split(",").map(tag => tag.trim()).filter(Boolean),
+        author,
+        publishedDate: new Date(publishedDate).toISOString(),
+        views: post?.views || 0,
+      };
       
-      toast({
-        title: post ? "Post updated" : "Post created",
-        description: post ? "Your changes have been saved." : "Your new post has been published.",
-      });
+      if (post) {
+        // Update existing post
+        await updatePost(post.id, formData);
+        if (onSubmit) onSubmit({ ...post, ...formData });
+      } else {
+        // Create new post
+        await addPost(formData);
+      }
       
       navigate("/admin/posts");
-      setIsSubmitting(false);
-    }, 500);
+    } catch (error) {
+      console.error("Error saving post:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-
+  
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter post title"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input
-              id="slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="enter-post-slug"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="excerpt">Excerpt</Label>
-            <Textarea
-              id="excerpt"
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Brief description of the post"
-              rows={2}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="featuredImage">Featured Image URL</Label>
-            <Input
-              id="featuredImage"
-              value={featuredImage}
-              onChange={(e) => setFeaturedImage(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              required
-            />
-            {featuredImage && (
-              <div className="mt-2">
-                <img 
-                  src={featuredImage} 
-                  alt="Preview" 
-                  className="max-h-40 rounded-md object-cover" 
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/300x200?text=Invalid+Image+URL";
-                  }}
-                />
-              </div>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={category}
-              onValueChange={setCategory}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.slug}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags (comma separated)</Label>
-            <Input
-              id="tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="e.g., freelancing, productivity, tips"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="editor">Editor</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-              <TabsContent value="editor" className="mt-2">
-                <RichTextEditor 
-                  value={content} 
-                  onChange={setContent} 
-                />
-              </TabsContent>
-              <TabsContent value="preview" className="mt-2 border rounded-md p-4">
-                {content ? (
-                  <div 
-                    className="blog-content" 
-                    dangerouslySetInnerHTML={{ __html: content }} 
-                  />
-                ) : (
-                  <p className="text-muted-foreground italic">
-                    No content to preview yet. Start writing in the editor tab.
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate("/admin/posts")}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : post ? "Update Post" : "Create Post"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={handleTitleChange}
+            placeholder="Enter post title"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug</Label>
+          <Input
+            id="slug"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder="enter-post-slug"
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="excerpt">Excerpt</Label>
+        <Textarea
+          id="excerpt"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          placeholder="Brief summary of the post"
+          rows={3}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="content">Content</Label>
+        <RichTextEditor
+          value={content}
+          onChange={setContent}
+          placeholder="Write your post content here..."
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="featuredImage">Featured Image URL</Label>
+          <Input
+            id="featuredImage"
+            value={featuredImage}
+            onChange={(e) => setFeaturedImage(e.target.value)}
+            placeholder="https://example.com/image.jpg"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category">Category</Label>
+          <Input
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Category"
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags (comma separated)</Label>
+          <Input
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="tag1, tag2, tag3"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="author">Author</Label>
+          <Input
+            id="author"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="Author name"
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="publishedDate">Publication Date</Label>
+        <Input
+          id="publishedDate"
+          type="date"
+          value={publishedDate}
+          onChange={(e) => setPublishedDate(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="flex justify-end gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate("/admin/posts")}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : post ? "Update Post" : "Create Post"}
+        </Button>
+      </div>
+    </form>
   );
 };

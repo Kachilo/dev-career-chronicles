@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBlog } from "../context/BlogContext";
 import { CommentSection } from "../components/CommentSection";
@@ -11,6 +11,12 @@ import { DonationButton } from "../components/DonationButton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Eye } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BlogBreadcrumb } from "@/components/BlogBreadcrumb";
+import { ReadingTime } from "@/components/ReadingTime";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ChatSupport } from "@/components/ChatSupport";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -26,6 +32,7 @@ const BlogPostPage = () => {
   } = useBlog();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
   
   const post = getPostBySlug(slug || "");
   
@@ -35,11 +42,19 @@ const BlogPostPage = () => {
       return;
     }
     
-    // Maintain scroll position instead of scrolling to top
     if (post) {
       incrementViews(post.id);
     }
-  }, [post, slug, navigate, incrementViews]);
+
+    // Save current scroll position
+    const position = window.scrollY;
+    setScrollPosition(position);
+
+    // Return to the same position
+    return () => {
+      window.scrollTo(0, scrollPosition);
+    };
+  }, [post, slug, navigate, incrementViews, scrollPosition]);
   
   if (!post) {
     return null;
@@ -62,6 +77,8 @@ const BlogPostPage = () => {
       <div className="container py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <article className="md:col-span-2">
+            <BlogBreadcrumb category={post.category} title={post.title} />
+            
             <header className="mb-8">
               <Badge variant="secondary" className="mb-4 capitalize">
                 {post.category}
@@ -86,6 +103,13 @@ const BlogPostPage = () => {
                   <Eye className="mr-1 h-4 w-4" />
                   <span>{post.views || 0} views</span>
                 </div>
+                
+                <ReadingTime content={post.content} />
+                
+                <div className="ml-auto flex items-center gap-2">
+                  <BookmarkButton postId={post.id} title={post.title} />
+                  <LanguageSwitcher />
+                </div>
               </div>
               
               <div className="flex flex-wrap gap-2 mb-6">
@@ -96,11 +120,10 @@ const BlogPostPage = () => {
                 ))}
               </div>
               
-              <img 
+              <LazyImage 
                 src={post.featuredImage} 
                 alt={post.title} 
                 className="w-full h-64 md:h-96 object-cover rounded-lg"
-                loading="lazy" // Add lazy loading for images
               />
             </header>
             
@@ -158,6 +181,7 @@ const BlogPostPage = () => {
           </aside>
         </div>
       </div>
+      <ChatSupport />
     </ScrollArea>
   );
 };

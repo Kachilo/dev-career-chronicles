@@ -42,6 +42,26 @@ export const categories: Category[] = [
     name: "Business",
     slug: "business",
   },
+  {
+    id: "9",
+    name: "AI & Machine Learning",
+    slug: "ai-machine-learning",
+  },
+  {
+    id: "10",
+    name: "Remote Work",
+    slug: "remote-work",
+  },
+  {
+    id: "11",
+    name: "Personal Growth",
+    slug: "personal-growth",
+  },
+  {
+    id: "12",
+    name: "Entrepreneurship",
+    slug: "entrepreneurship",
+  },
 ];
 
 // Empty array - no more initial blog posts

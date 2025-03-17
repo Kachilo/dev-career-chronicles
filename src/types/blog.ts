@@ -12,6 +12,7 @@ export interface BlogPost {
   publishedDate: string;
   comments: Comment[];
   reactions: Reactions;
+  views: number;
 }
 
 export interface Comment {
@@ -20,6 +21,8 @@ export interface Comment {
   content: string;
   date: string;
   replies?: Reply[];
+  likes: number;
+  dislikes: number;
 }
 
 export interface Reply {
@@ -39,4 +42,27 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+}
+
+export interface Poll {
+  id: string;
+  question: string;
+  options: PollOption[];
+  endDate: string;
+  postId?: string;
+}
+
+export interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface AffiliateLink {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  linkUrl: string;
+  category: string;
 }

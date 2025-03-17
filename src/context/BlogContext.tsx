@@ -1,17 +1,23 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BlogPost, Comment } from "../types/blog";
+import { BlogPost, Comment, Poll, AffiliateLink } from "../types/blog";
 import { supabase } from "../integrations/supabase/client";
 
 interface BlogContextProps {
   posts: BlogPost[];
-  addPost: (post: Omit<BlogPost, "id" | "comments" | "reactions">) => void;
+  polls: Poll[];
+  affiliateLinks: AffiliateLink[];
+  addPost: (post: Omit<BlogPost, "id" | "comments" | "reactions" | "views">) => void;
   updatePost: (postId: string, postData: Partial<BlogPost>) => void;
   deletePost: (postId: string) => void;
   getPostBySlug: (slug: string) => BlogPost | undefined;
-  addComment: (postId: string, comment: Omit<Comment, "id" | "date">) => void;
+  addComment: (postId: string, comment: Omit<Comment, "id" | "date" | "likes" | "dislikes">) => void;
   deleteComment: (postId: string, commentId: string) => void;
+  likeComment: (postId: string, commentId: string) => void;
+  dislikeComment: (postId: string, commentId: string) => void;
+  incrementViews: (postId: string) => void;
+  addPoll: (poll: Omit<Poll, "id">) => void;
+  votePoll: (pollId: string, optionId: string) => void;
 }
 
 const BlogContext = createContext<BlogContextProps | undefined>(undefined);
@@ -30,6 +36,41 @@ interface BlogProviderProps {
 
 export const BlogProvider = ({ children }: BlogProviderProps) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([
+    {
+      id: "1",
+      title: "The Complete Web Development Course",
+      description: "Learn web development from scratch with this comprehensive course.",
+      imageUrl: "https://picsum.photos/seed/webdev/300/200",
+      linkUrl: "https://example.com/affiliate/webdev",
+      category: "web-development"
+    },
+    {
+      id: "2",
+      title: "Premium Web Hosting",
+      description: "Fast and reliable hosting for your websites.",
+      imageUrl: "https://picsum.photos/seed/hosting/300/200",
+      linkUrl: "https://example.com/affiliate/hosting",
+      category: "web-development"
+    },
+    {
+      id: "3",
+      title: "Freelancing Masterclass",
+      description: "Learn how to build a successful freelancing career.",
+      imageUrl: "https://picsum.photos/seed/freelance/300/200",
+      linkUrl: "https://example.com/affiliate/freelance",
+      category: "freelancing"
+    },
+    {
+      id: "4",
+      title: "Digital Marketing Toolkit",
+      description: "Essential tools for digital marketing success.",
+      imageUrl: "https://picsum.photos/seed/marketing/300/200",
+      linkUrl: "https://example.com/affiliate/marketing",
+      category: "digital-marketing"
+    }
+  ]);
 
   // Load posts from Supabase on initial load
   useEffect(() => {
@@ -93,7 +134,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             author: post.author,
             publishedDate: post.published_date,
             comments: [],
-            reactions: reactions
+            reactions: reactions,
+            views: post.views || Math.floor(Math.random() * 200) // For demo purposes
           };
         });
         
@@ -131,7 +173,9 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         id: comment.id,
         name: comment.name,
         content: comment.content,
-        date: comment.date
+        date: comment.date,
+        likes: comment.likes || 0,
+        dislikes: comment.dislikes || 0
       }));
       
       // Update post with comments
@@ -147,7 +191,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   };
 
-  const addPost = async (post: Omit<BlogPost, "id" | "comments" | "reactions">) => {
+  const addPost = async (post: Omit<BlogPost, "id" | "comments" | "reactions" | "views">) => {
     try {
       console.log("Adding post to Supabase:", post);
       
@@ -168,7 +212,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             like: 0,
             love: 0,
             clap: 0
-          }
+          },
+          views: 0
         })
         .select();
       
@@ -201,7 +246,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           like: 0,
           love: 0,
           clap: 0
-        }
+        },
+        views: 0
       };
       
       setPosts((prevPosts) => [newPost, ...prevPosts]);
@@ -271,11 +317,13 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     return posts.find((post) => post.slug === slug);
   };
 
-  const addComment = async (postId: string, comment: Omit<Comment, "id" | "date">) => {
+  const addComment = async (postId: string, comment: Omit<Comment, "id" | "date" | "likes" | "dislikes">) => {
     const newComment: Comment = {
       ...comment,
       id: uuidv4(),
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      likes: 0,
+      dislikes: 0
     };
     
     try {
@@ -286,7 +334,9 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           post_id: postId,
           name: comment.name,
           content: comment.content,
-          date: newComment.date
+          date: newComment.date,
+          likes: 0,
+          dislikes: 0
         })
         .select();
       
@@ -342,17 +392,162 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       console.error("Failed to delete comment:", error);
     }
   };
+  
+  const likeComment = async (postId: string, commentId: string) => {
+    try {
+      // First, get the current comment 
+      const post = posts.find(p => p.id === postId);
+      const comment = post?.comments.find(c => c.id === commentId);
+      
+      if (!comment) return;
+      
+      // Update comment likes in Supabase
+      const { error } = await supabase
+        .from("comments")
+        .update({ likes: comment.likes + 1 })
+        .eq("id", commentId);
+      
+      if (error) {
+        console.error("Error liking comment:", error);
+        return;
+      }
+      
+      // Update comment in local state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((c) =>
+                  c.id === commentId
+                    ? { ...c, likes: c.likes + 1 }
+                    : c
+                )
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error("Failed to like comment:", error);
+    }
+  };
+  
+  const dislikeComment = async (postId: string, commentId: string) => {
+    try {
+      // First, get the current comment
+      const post = posts.find(p => p.id === postId);
+      const comment = post?.comments.find(c => c.id === commentId);
+      
+      if (!comment) return;
+      
+      // Update comment dislikes in Supabase
+      const { error } = await supabase
+        .from("comments")
+        .update({ dislikes: comment.dislikes + 1 })
+        .eq("id", commentId);
+      
+      if (error) {
+        console.error("Error disliking comment:", error);
+        return;
+      }
+      
+      // Update comment in local state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((c) =>
+                  c.id === commentId
+                    ? { ...c, dislikes: c.dislikes + 1 }
+                    : c
+                )
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error("Failed to dislike comment:", error);
+    }
+  };
+  
+  const incrementViews = async (postId: string) => {
+    try {
+      // Get the current post
+      const post = posts.find(p => p.id === postId);
+      
+      if (!post) return;
+      
+      const newViewCount = (post.views || 0) + 1;
+      
+      // Update views in Supabase
+      const { error } = await supabase
+        .from("posts")
+        .update({ views: newViewCount })
+        .eq("id", postId);
+      
+      if (error) {
+        console.error("Error incrementing views:", error);
+        return;
+      }
+      
+      // Update post in local state
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p.id === postId
+            ? { ...p, views: newViewCount }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error("Failed to increment views:", error);
+    }
+  };
+  
+  // Poll functions
+  const addPoll = (poll: Omit<Poll, "id">) => {
+    const newPoll: Poll = {
+      ...poll,
+      id: uuidv4()
+    };
+    
+    setPolls((prevPolls) => [...prevPolls, newPoll]);
+  };
+  
+  const votePoll = (pollId: string, optionId: string) => {
+    setPolls((prevPolls) =>
+      prevPolls.map((poll) =>
+        poll.id === pollId
+          ? {
+              ...poll,
+              options: poll.options.map((option) =>
+                option.id === optionId
+                  ? { ...option, votes: option.votes + 1 }
+                  : option
+              )
+            }
+          : poll
+      )
+    );
+  };
 
   return (
     <BlogContext.Provider
       value={{
         posts,
+        polls,
+        affiliateLinks,
         addPost,
         updatePost,
         deletePost,
         getPostBySlug,
         addComment,
-        deleteComment
+        deleteComment,
+        likeComment,
+        dislikeComment,
+        incrementViews,
+        addPoll,
+        votePoll
       }}
     >
       {children}

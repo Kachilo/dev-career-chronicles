@@ -1,8 +1,5 @@
 
 import { AffiliateLink } from "@/types/blog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExternalLink } from "lucide-react";
 
 interface AffiliateProductsProps {
   links: AffiliateLink[];

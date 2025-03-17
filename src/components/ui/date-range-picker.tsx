@@ -62,9 +62,25 @@ export function CalendarDateRangePicker({
               }
             }}
             numberOfMonths={2}
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
     </div>
+  );
+}
+
+// Add the DateRangePicker component
+interface DateRangePickerProps {
+  date: { from: Date; to: Date };
+  onDateChange: (range: DateRange | undefined) => void;
+}
+
+export function DateRangePicker({ date, onDateChange }: DateRangePickerProps) {
+  return (
+    <CalendarDateRangePicker
+      dateRange={{ from: date.from, to: date.to }}
+      onUpdate={(range) => onDateChange(range)}
+    />
   );
 }

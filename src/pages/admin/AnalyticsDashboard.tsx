@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
@@ -19,7 +18,6 @@ const AnalyticsDashboard = () => {
   const [filteredPosts, setFilteredPosts] = useState(posts);
   
   useEffect(() => {
-    // Filter posts based on date range
     if (dateRange.from && dateRange.to) {
       const filtered = posts.filter(post => {
         const postDate = new Date(post.publishedDate);
@@ -31,7 +29,6 @@ const AnalyticsDashboard = () => {
     }
   }, [posts, dateRange]);
   
-  // Calculate analytics data
   const totalViews = filteredPosts.reduce((sum, post) => sum + (post.views || 0), 0);
   const totalComments = filteredPosts.reduce((sum, post) => sum + post.comments.length, 0);
   const totalReactions = filteredPosts.reduce((sum, post) => {
@@ -39,13 +36,11 @@ const AnalyticsDashboard = () => {
     return sum + reactions.like + reactions.love + reactions.clap;
   }, 0);
   
-  // Format data for charts
   const viewsChartData = filteredPosts.slice(0, 10).map(post => ({
     name: post.title.substring(0, 20) + (post.title.length > 20 ? '...' : ''),
     views: post.views || 0
   }));
   
-  // Handle date range change
   const handleDateRangeChange = (range: DateRange | undefined) => {
     if (range?.from) {
       setDateRange({

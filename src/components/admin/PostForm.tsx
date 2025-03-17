@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,17 +8,17 @@ import { RichTextEditor } from "./RichTextEditor";
 import { BlogPost } from "@/types/blog";
 import { useBlog } from "@/context/BlogContext";
 
-interface PostFormProps {
+export interface PostFormProps {
   post?: BlogPost;
   onSubmit?: (post: BlogPost) => void;
+  onSave?: (postData: any) => void;
 }
 
-export const PostForm = ({ post, onSubmit }: PostFormProps) => {
+export const PostForm = ({ post, onSubmit, onSave }: PostFormProps) => {
   const navigate = useNavigate();
   const { addPost, updatePost } = useBlog();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form state
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [excerpt, setExcerpt] = useState(post?.excerpt || "");
@@ -35,12 +33,11 @@ export const PostForm = ({ post, onSubmit }: PostFormProps) => {
       : new Date().toISOString().split("T")[0]
   );
   
-  // Auto-generate slug from title
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     
-    if (!post) { // Only auto-generate slug for new posts
+    if (!post) {
       const newSlug = newTitle
         .toLowerCase()
         .replace(/[^\w\s]/gi, "")
@@ -69,12 +66,12 @@ export const PostForm = ({ post, onSubmit }: PostFormProps) => {
       };
       
       if (post) {
-        // Update existing post
         await updatePost(post.id, formData);
-        if (onSubmit) onSubmit({ ...post, ...formData });
+        if (onSave) onSave({ ...post, ...formData });
+        else if (onSubmit) onSubmit({ ...post, ...formData });
       } else {
-        // Create new post
         await addPost(formData);
+        if (onSave) onSave(formData);
       }
       
       navigate("/admin/posts");

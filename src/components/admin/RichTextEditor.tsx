@@ -28,9 +28,10 @@ import {
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string; // Adding optional placeholder prop
 }
 
-export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
+export const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -189,6 +190,7 @@ export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
       <EditorContent 
         editor={editor} 
         className="p-3 min-h-[200px] prose prose-sm max-w-none"
+        placeholder={placeholder}
       />
       
       <div className="bg-muted p-2 border-t text-xs text-muted-foreground">

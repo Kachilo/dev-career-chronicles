@@ -4,15 +4,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Trash2, ExternalLink } from "lucide-react";
+import { Search, ExternalLink } from "lucide-react";
 import { useBlog } from "../../context/BlogContext";
-import { useToast } from "@/hooks/use-toast";
 
 const AdminCommentsPage = () => {
-  const { posts, deleteComment } = useBlog();
+  const { posts } = useBlog();
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
   
   // Extract all comments from all posts
   const allComments = posts.flatMap(post => 
@@ -35,15 +32,6 @@ const AdminCommentsPage = () => {
     comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     comment.postTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  const handleDeleteComment = (postId: string, commentId: string) => {
-    deleteComment(postId, commentId);
-    
-    toast({
-      title: "Comment deleted",
-      description: "The comment has been removed successfully.",
-    });
-  };
 
   return (
     <div>
@@ -88,50 +76,17 @@ const AdminCommentsPage = () => {
                       {new Date(comment.date).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          asChild
-                          title="View post"
-                          aria-label="View post"
-                        >
-                          <Link to={`/blog/${comment.postSlug}`}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                              title="Delete comment"
-                              aria-label="Delete comment"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this comment? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteComment(comment.postId, comment.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        asChild
+                        title="View post"
+                        aria-label="View post"
+                      >
+                        <Link to={`/blog/${comment.postSlug}`}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

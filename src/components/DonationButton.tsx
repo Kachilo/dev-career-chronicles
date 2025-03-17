@@ -10,17 +10,17 @@ export const DonationButton = () => {
   const [amount, setAmount] = useState("5");
   
   const handlePayPalDonation = () => {
-    // Replace with actual PayPal donation link
-    window.open("https://www.paypal.com/donate/?hosted_button_id=YOUR_BUTTON_ID", "_blank");
+    // Open PayPal with the user's email
+    window.open(`https://www.paypal.com/paypalme/omarwashe414`, "_blank");
   };
   
   const handleMPesaDonation = () => {
     // This would typically show M-Pesa instructions or initiate an M-Pesa payment
-    alert("M-Pesa donation: Send to +254 XXX XXX XXX, Your name as the reference");
+    alert("M-Pesa donation: Send to +254725409996, Your name as the reference");
   };
   
   const handleBuyMeACoffee = () => {
-    // Replace with actual Buy Me A Coffee link
+    // Redirect to Buy Me A Coffee
     window.open("https://www.buymeacoffee.com/yourusername", "_blank");
   };
 
@@ -87,6 +87,10 @@ export const DonationButton = () => {
                 <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
               
+              <div className="text-center text-sm mb-2">
+                Donate to email: <strong>omarwashe414@gmail.com</strong>
+              </div>
+              
               <Button 
                 onClick={handlePayPalDonation}
                 className="w-full"
@@ -103,9 +107,9 @@ export const DonationButton = () => {
               </div>
               <p className="text-sm">Send your contribution via M-Pesa</p>
             </div>
-            <div className="bg-gray-100 p-3 rounded text-sm mb-4">
-              <p>Pay to: <strong>+254 XXX XXX XXX</strong></p>
-              <p>Reference: <strong>Your Name</strong></p>
+            <div className="bg-green-50 p-3 rounded text-sm mb-4 border border-green-200">
+              <p className="text-green-800">Pay to: <strong>+254725409996</strong></p>
+              <p className="text-green-800">Reference: <strong>Your Name</strong></p>
             </div>
             <Button 
               onClick={handleMPesaDonation}

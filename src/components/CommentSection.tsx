@@ -11,7 +11,6 @@ interface CommentSectionProps {
   postId: string;
   comments: Comment[];
   onAddComment: (comment: Omit<Comment, "id" | "date" | "replies" | "likes" | "dislikes">) => void;
-  onDeleteComment: (commentId: string) => void;
   onLikeComment?: (commentId: string) => void;
   onDislikeComment?: (commentId: string) => void;
 }
@@ -20,7 +19,6 @@ export const CommentSection = ({
   postId,
   comments,
   onAddComment,
-  onDeleteComment,
   onLikeComment,
   onDislikeComment,
 }: CommentSectionProps) => {
@@ -111,46 +109,35 @@ export const CommentSection = ({
               
               <p className="mb-3">{comment.content}</p>
               
-              <div className="flex justify-between items-center">
-                <div className="flex gap-3">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <ReplyIcon className="h-4 w-4" />
-                    {replyingTo === comment.id ? "Cancel" : "Reply"}
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onLikeComment && onLikeComment(comment.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>{comment.likes || 0}</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onDislikeComment && onDislikeComment(comment.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <ThumbsDown className="h-4 w-4" />
-                    <span>{comment.dislikes || 0}</span>
-                  </Button>
-                </div>
-                
+              <div className="flex items-center gap-3">
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => onDeleteComment(comment.id)}
+                  onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                  className="flex items-center gap-1"
                 >
-                  Delete
+                  <ReplyIcon className="h-4 w-4" />
+                  {replyingTo === comment.id ? "Cancel" : "Reply"}
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onLikeComment && onLikeComment(comment.id)}
+                  className="flex items-center gap-1"
+                >
+                  <ThumbsUp className="h-4 w-4" />
+                  <span>{comment.likes || 0}</span>
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onDislikeComment && onDislikeComment(comment.id)}
+                  className="flex items-center gap-1"
+                >
+                  <ThumbsDown className="h-4 w-4" />
+                  <span>{comment.dislikes || 0}</span>
                 </Button>
               </div>
               

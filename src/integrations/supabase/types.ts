@@ -52,21 +52,27 @@ export type Database = {
         Row: {
           content: string
           date: string
+          dislikes: number
           id: string
+          likes: number
           name: string
           post_id: string
         }
         Insert: {
           content: string
           date?: string
+          dislikes?: number
           id?: string
+          likes?: number
           name: string
           post_id: string
         }
         Update: {
           content?: string
           date?: string
+          dislikes?: number
           id?: string
+          likes?: number
           name?: string
           post_id?: string
         }
@@ -95,6 +101,7 @@ export type Database = {
           tags: string[]
           title: string
           updated_at: string
+          views: number
         }
         Insert: {
           author: string
@@ -110,6 +117,7 @@ export type Database = {
           tags?: string[]
           title: string
           updated_at?: string
+          views?: number
         }
         Update: {
           author?: string
@@ -125,6 +133,7 @@ export type Database = {
           tags?: string[]
           title?: string
           updated_at?: string
+          views?: number
         }
         Relationships: []
       }

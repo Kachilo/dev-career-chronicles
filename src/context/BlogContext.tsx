@@ -72,7 +72,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   ]);
 
-  // Load posts from Supabase on initial load
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -88,9 +87,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         
         console.log("Posts fetched successfully:", data);
         
-        // Transform the Supabase post data to match our BlogPost structure
         const blogPosts: BlogPost[] = data.map((post) => {
-          // Parse reactions from JSONB if it exists, or create default
           let reactions = {
             like: 0,
             love: 0,
@@ -99,7 +96,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           
           if (post.reactions) {
             try {
-              // If it's already a JS object, use it directly
               if (typeof post.reactions === 'object') {
                 const reactionsObj = post.reactions as Record<string, any>;
                 reactions = {
@@ -108,7 +104,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
                   clap: reactionsObj.clap || 0
                 };
               } 
-              // Otherwise try to parse it from JSON string
               else if (typeof post.reactions === 'string') {
                 const parsed = JSON.parse(post.reactions);
                 reactions = {
@@ -135,13 +130,12 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             publishedDate: post.published_date,
             comments: [],
             reactions: reactions,
-            views: post.views || Math.floor(Math.random() * 200) // For demo purposes
+            views: post.views || Math.floor(Math.random() * 200)
           };
         });
         
         setPosts(blogPosts);
         
-        // After loading posts, fetch comments for each post
         blogPosts.forEach(post => {
           fetchCommentsForPost(post.id);
         });
@@ -152,8 +146,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
     fetchPosts();
   }, []);
-  
-  // Function to fetch comments for a specific post
+
   const fetchCommentsForPost = async (postId: string) => {
     try {
       const { data, error } = await supabase
@@ -178,7 +171,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         dislikes: comment.dislikes || 0
       }));
       
-      // Update post with comments
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
@@ -195,7 +187,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     try {
       console.log("Adding post to Supabase:", post);
       
-      // Insert post into Supabase
       const { data, error } = await supabase
         .from("posts")
         .insert({
@@ -229,7 +220,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       
       console.log("Post added successfully:", data[0]);
       
-      // Create a new post object with the structure needed for our application
       const newPost: BlogPost = {
         id: data[0].id,
         title: data[0].title,
@@ -258,7 +248,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
   const updatePost = async (postId: string, postData: Partial<BlogPost>) => {
     try {
-      // Prepare data for Supabase update
       const supabaseData: any = {};
       
       if (postData.title) supabaseData.title = postData.title;
@@ -271,7 +260,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       if (postData.author) supabaseData.author = postData.author;
       if (postData.reactions) supabaseData.reactions = postData.reactions;
       
-      // Update post in Supabase
       const { error } = await supabase
         .from("posts")
         .update(supabaseData)
@@ -282,7 +270,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Update post in local state
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId ? { ...post, ...postData } : post
@@ -295,7 +282,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
   const deletePost = async (postId: string) => {
     try {
-      // Delete post from Supabase
       const { error } = await supabase
         .from("posts")
         .delete()
@@ -306,7 +292,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Remove post from local state
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
     } catch (error) {
       console.error("Failed to delete post:", error);
@@ -327,7 +312,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     };
     
     try {
-      // Add comment to Supabase
       const { data, error } = await supabase
         .from("comments")
         .insert({
@@ -351,7 +335,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         newComment.id = data[0].id;
       }
       
-      // Update posts in local state
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
@@ -366,7 +349,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
 
   const deleteComment = async (postId: string, commentId: string) => {
     try {
-      // Delete comment from Supabase
       const { error } = await supabase
         .from("comments")
         .delete()
@@ -377,7 +359,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Update posts in local state
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
@@ -395,13 +376,11 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   
   const likeComment = async (postId: string, commentId: string) => {
     try {
-      // First, get the current comment 
       const post = posts.find(p => p.id === postId);
       const comment = post?.comments.find(c => c.id === commentId);
       
       if (!comment) return;
       
-      // Update comment likes in Supabase
       const { error } = await supabase
         .from("comments")
         .update({ likes: comment.likes + 1 })
@@ -412,7 +391,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Update comment in local state
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
@@ -427,6 +405,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             : post
         )
       );
+      
+      console.log("Comment liked successfully, new count:", comment.likes + 1);
     } catch (error) {
       console.error("Failed to like comment:", error);
     }
@@ -434,13 +414,11 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   
   const dislikeComment = async (postId: string, commentId: string) => {
     try {
-      // First, get the current comment
       const post = posts.find(p => p.id === postId);
       const comment = post?.comments.find(c => c.id === commentId);
       
       if (!comment) return;
       
-      // Update comment dislikes in Supabase
       const { error } = await supabase
         .from("comments")
         .update({ dislikes: comment.dislikes + 1 })
@@ -451,7 +429,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Update comment in local state
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
@@ -466,6 +443,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
             : post
         )
       );
+      
+      console.log("Comment disliked successfully, new count:", comment.dislikes + 1);
     } catch (error) {
       console.error("Failed to dislike comment:", error);
     }
@@ -473,14 +452,12 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   
   const incrementViews = async (postId: string) => {
     try {
-      // Get the current post
       const post = posts.find(p => p.id === postId);
       
       if (!post) return;
       
       const newViewCount = (post.views || 0) + 1;
       
-      // Update views in Supabase
       const { error } = await supabase
         .from("posts")
         .update({ views: newViewCount })
@@ -491,7 +468,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         return;
       }
       
-      // Update post in local state
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
           p.id === postId
@@ -503,8 +479,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       console.error("Failed to increment views:", error);
     }
   };
-  
-  // Poll functions
+
   const addPoll = (poll: Omit<Poll, "id">) => {
     const newPoll: Poll = {
       ...poll,

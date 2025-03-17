@@ -7,7 +7,6 @@ import { ShareButtons } from "../components/ShareButtons";
 import { RelatedPosts } from "../components/RelatedPosts";
 import { TrendingPosts } from "../components/TrendingPosts";
 import { PollWidget } from "../components/PollWidget";
-import { AffiliateProducts } from "../components/AffiliateProducts";
 import { DonationButton } from "../components/DonationButton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Eye } from "lucide-react";
@@ -18,12 +17,10 @@ const BlogPostPage = () => {
     posts, 
     getPostBySlug, 
     addComment, 
-    deleteComment, 
     likeComment,
     dislikeComment,
     incrementViews,
     polls,
-    affiliateLinks,
     votePoll
   } = useBlog();
   const navigate = useNavigate();
@@ -60,11 +57,6 @@ const BlogPostPage = () => {
   
   // Find a poll for this post if one exists
   const postPoll = polls.find(poll => poll.postId === post.id);
-  
-  // Get affiliate links related to the post's category
-  const relatedAffiliateLinks = affiliateLinks.filter(link => 
-    link.category === post.category
-  );
 
   return (
     <div className="container py-8">
@@ -126,7 +118,6 @@ const BlogPostPage = () => {
               postId={post.id}
               comments={post.comments}
               onAddComment={(comment) => addComment(post.id, comment)}
-              onDeleteComment={(commentId) => deleteComment(post.id, commentId)}
               onLikeComment={(commentId) => likeComment(post.id, commentId)}
               onDislikeComment={(commentId) => dislikeComment(post.id, commentId)}
             />
@@ -143,10 +134,6 @@ const BlogPostPage = () => {
               poll={postPoll} 
               onVote={votePoll} 
             />
-          )}
-          
-          {relatedAffiliateLinks.length > 0 && (
-            <AffiliateProducts links={relatedAffiliateLinks} />
           )}
           
           {/* Add a default poll if no post-specific poll exists */}

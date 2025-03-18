@@ -19,12 +19,12 @@ import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
 import AdminPollsPage from "./pages/admin/AdminPollsPage";
+import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
 import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import ScheduledPostsPage from "./pages/admin/ScheduledPostsPage";
 import WhatsAppButton from "./components/WhatsAppButton";
 import { WelcomePopup } from "./components/WelcomePopup";
 import { ChatSupport } from "./components/ChatSupport";
-import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +52,7 @@ const App = () => (
                   <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
                   <Route path="polls" element={<AdminPollsPage />} />
+                  <Route path="messages" element={<AdminMessagesPage />} />
                   <Route path="analytics" element={<AnalyticsDashboard />} />
                   <Route path="scheduled" element={<ScheduledPostsPage />} />
                 </Route>

@@ -86,6 +86,39 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          admin_reply: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          name: string
+          phone_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          name: string
+          phone_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          name?: string
+          phone_number?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       polls: {
         Row: {
           created_at: string

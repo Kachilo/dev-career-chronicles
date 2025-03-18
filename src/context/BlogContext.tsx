@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BlogPost, Comment, Poll, AffiliateLink } from "../types/blog";
+import { BlogPost, Comment, Poll, AffiliateLink, Message } from "../types/blog";
 import { supabase } from "../integrations/supabase/client";
 
 interface BlogContextProps {
   posts: BlogPost[];
   polls: Poll[];
   affiliateLinks: AffiliateLink[];
+  messages: Message[];
   addPost: (post: Omit<BlogPost, "id" | "comments" | "reactions" | "views">) => void;
   updatePost: (postId: string, postData: Partial<BlogPost>) => void;
   deletePost: (postId: string) => void;
@@ -18,6 +19,9 @@ interface BlogContextProps {
   incrementViews: (postId: string) => void;
   addPoll: (poll: Omit<Poll, "id">) => void;
   votePoll: (pollId: string, optionId: string) => void;
+  addMessage: (message: Omit<Message, "id" | "created_at" | "updated_at" | "is_read" | "admin_reply">) => Promise<void>;
+  markMessageAsRead: (messageId: string) => Promise<void>;
+  replyToMessage: (messageId: string, reply: string) => Promise<void>;
 }
 
 const BlogContext = createContext<BlogContextProps | undefined>(undefined);
@@ -71,6 +75,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   ]);
   const [polls, setPolls] = useState<Poll[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -144,7 +149,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       }
     };
 
-    // Add function to fetch polls
     const fetchPolls = async () => {
       try {
         console.log("Fetching polls from Supabase...");
@@ -192,8 +196,32 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       }
     };
 
+    const fetchMessages = async () => {
+      try {
+        console.log("Fetching messages from Supabase...");
+        const { data, error } = await supabase
+          .from("messages")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching messages:", error);
+          return;
+        }
+        
+        console.log("Messages fetched successfully:", data);
+        
+        if (data) {
+          setMessages(data as Message[]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      }
+    };
+
     fetchPosts();
     fetchPolls();
+    fetchMessages();
   }, []);
 
   const fetchCommentsForPost = async (postId: string) => {
@@ -567,7 +595,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   
   const votePoll = async (pollId: string, optionId: string) => {
     try {
-      // Find the poll and update the option votes
       const updatedPolls = polls.map((poll) =>
         poll.id === pollId
           ? {
@@ -583,7 +610,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       
       setPolls(updatedPolls);
       
-      // Find the updated poll to save to Supabase
       const updatedPoll = updatedPolls.find(p => p.id === pollId);
       
       if (updatedPoll) {
@@ -605,12 +631,94 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   };
 
+  const addMessage = async (message: Omit<Message, "id" | "created_at" | "updated_at" | "is_read" | "admin_reply">) => {
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({
+          name: message.name,
+          phone_number: message.phone_number,
+          message: message.message,
+          is_read: false
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding message:", error);
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        const newMessage = data[0] as Message;
+        setMessages(prevMessages => [newMessage, ...prevMessages]);
+        console.log("Message added successfully:", newMessage);
+      }
+    } catch (error) {
+      console.error("Failed to add message:", error);
+      throw error;
+    }
+  };
+
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("id", messageId);
+      
+      if (error) {
+        console.error("Error marking message as read:", error);
+        throw error;
+      }
+      
+      setMessages(prevMessages => 
+        prevMessages.map(message => 
+          message.id === messageId 
+            ? { ...message, is_read: true } 
+            : message
+        )
+      );
+    } catch (error) {
+      console.error("Failed to mark message as read:", error);
+      throw error;
+    }
+  };
+
+  const replyToMessage = async (messageId: string, reply: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ 
+          admin_reply: reply,
+          is_read: true 
+        })
+        .eq("id", messageId);
+      
+      if (error) {
+        console.error("Error replying to message:", error);
+        throw error;
+      }
+      
+      setMessages(prevMessages => 
+        prevMessages.map(message => 
+          message.id === messageId 
+            ? { ...message, admin_reply: reply, is_read: true } 
+            : message
+        )
+      );
+    } catch (error) {
+      console.error("Failed to reply to message:", error);
+      throw error;
+    }
+  };
+
   return (
     <BlogContext.Provider
       value={{
         posts,
         polls,
         affiliateLinks,
+        messages,
         addPost,
         updatePost,
         deletePost,
@@ -621,10 +729,14 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         dislikeComment,
         incrementViews,
         addPoll,
-        votePoll
+        votePoll,
+        addMessage,
+        markMessageAsRead,
+        replyToMessage
       }}
     >
       {children}
     </BlogContext.Provider>
   );
 };
+

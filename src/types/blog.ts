@@ -1,4 +1,3 @@
-
 export interface BlogPost {
   id: string;
   title: string;
@@ -66,4 +65,15 @@ export interface AffiliateLink {
   imageUrl: string;
   linkUrl: string;
   category: string;
+}
+
+export interface Message {
+  id: string;
+  name: string;
+  phone_number: string;
+  message: string;
+  is_read: boolean;
+  admin_reply: string | null;
+  created_at: string;
+  updated_at: string;
 }

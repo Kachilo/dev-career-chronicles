@@ -80,6 +80,14 @@ export interface Message {
 }
 
 // Types for JSON serialization with Supabase
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export type JsonPollOption = {
   id: string;
   text: string;

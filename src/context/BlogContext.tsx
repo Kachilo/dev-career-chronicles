@@ -1,6 +1,7 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BlogPost, Comment, Poll, AffiliateLink, Message } from "../types/blog";
+import { BlogPost, Comment, Poll, AffiliateLink, Message, Json, JsonPollOption } from "../types/blog";
 import { supabase } from "../integrations/supabase/client";
 
 interface BlogContextProps {
@@ -172,7 +173,12 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
                 if (typeof poll.options === 'string') {
                   pollOptions = JSON.parse(poll.options);
                 } else {
-                  pollOptions = poll.options;
+                  // Convert from Json type to PollOption type
+                  pollOptions = (poll.options as any[]).map(opt => ({
+                    id: opt.id,
+                    text: opt.text,
+                    votes: opt.votes
+                  }));
                 }
               } catch (e) {
                 console.error("Error parsing poll options:", e);
@@ -565,11 +571,18 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       };
       
       try {
+        // Convert poll options to Json type for Supabase
+        const jsonOptions: JsonPollOption[] = newPoll.options.map(opt => ({
+          id: opt.id,
+          text: opt.text,
+          votes: opt.votes
+        }));
+        
         const { data, error } = await supabase
           .from("polls")
           .insert({
             question: newPoll.question,
-            options: newPoll.options,
+            options: jsonOptions as Json,
             end_date: newPoll.endDate,
             post_id: newPoll.postId,
             reference: newPoll.reference || "OMAR WASHE KONDE"
@@ -614,9 +627,16 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       
       if (updatedPoll) {
         try {
+          // Convert poll options to Json type for Supabase
+          const jsonOptions: JsonPollOption[] = updatedPoll.options.map(opt => ({
+            id: opt.id,
+            text: opt.text,
+            votes: opt.votes
+          }));
+          
           const { error } = await supabase
             .from("polls")
-            .update({ options: updatedPoll.options })
+            .update({ options: jsonOptions as Json })
             .eq("id", pollId);
           
           if (error) {
@@ -739,4 +759,3 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     </BlogContext.Provider>
   );
 };
-

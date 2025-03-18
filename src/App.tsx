@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -18,7 +19,7 @@ import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from "./components/ThemeProvider";
 import { BlogProvider } from "@/context/BlogContext";
 import { Toaster } from "sonner";
 import FloatingContactButton from "@/components/FloatingContactButton";

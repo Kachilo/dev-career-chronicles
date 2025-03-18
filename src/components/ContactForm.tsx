@@ -1,127 +1,113 @@
 
 import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useBlog } from "../context/BlogContext";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useBlog } from "@/context/BlogContext";
+import { Loader2 } from "lucide-react";
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  phone_number: z.string().min(10, { message: "Please enter a valid phone number." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
-});
+interface ContactFormProps {
+  onClose?: () => void;
+  isCompact?: boolean;
+}
 
-type FormValues = z.infer<typeof formSchema>;
-
-const ContactForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const ContactForm = ({ onClose, isCompact }: ContactFormProps) => {
   const { addMessage } = useBlog();
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      phone_number: "",
-      message: "",
-    },
-  });
-
-  const onSubmit = async (data: FormValues) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name.trim() || !phoneNumber.trim() || !message.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       await addMessage({
-        name: data.name,
-        phone_number: data.phone_number,
-        message: data.message,
+        name,
+        phone_number: phoneNumber,
+        message
       });
       
-      form.reset();
+      toast.success("Your message has been sent successfully!");
+      setName("");
+      setPhoneNumber("");
+      setMessage("");
       
-      toast.success("Message sent!", {
-        description: "Thank you for your message. We'll get back to you soon.",
-      });
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Error sending message", {
-        description: "Please try again later.",
-      });
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          type="text"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className={isCompact ? "h-9" : ""}
         />
-        
-        <FormField
-          control={form.control}
-          name="phone_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Your phone number" type="tel" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="phoneNumber">Phone Number</Label>
+        <Input
+          id="phoneNumber"
+          type="tel"
+          placeholder="Your phone number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          required
+          className={isCompact ? "h-9" : ""}
         />
-        
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Message</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Your message here..."
-                  className="min-h-[120px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="message">Message</Label>
+        <Textarea
+          id="message"
+          placeholder="Type your message here..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          required
+          className={isCompact ? "min-h-20" : "min-h-32"}
         />
-        
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>Sending...</>
-          ) : (
-            <>
-              <Send className="mr-2 h-4 w-4" />
-              Send Message
-            </>
-          )}
-        </Button>
-      </form>
-    </Form>
+      </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          "Send Message"
+        )}
+      </Button>
+    </form>
   );
 };
 

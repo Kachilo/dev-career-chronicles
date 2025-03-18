@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Coffee, DollarSign, Heart } from "lucide-react";
+import { Coffee, DollarSign } from "lucide-react";
 
-export const DonationButton = () => {
+const DonationButton = () => {
   const [amount, setAmount] = useState("5");
   
   const handlePayPalDonation = () => {
@@ -123,3 +123,5 @@ export const DonationButton = () => {
     </Dialog>
   );
 };
+
+export default DonationButton;

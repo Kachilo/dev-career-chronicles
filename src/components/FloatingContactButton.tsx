@@ -16,7 +16,7 @@ const FloatingContactButton = () => {
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
           <Button 
-            className="fixed bottom-6 right-6 rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center z-50 bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="fixed bottom-24 right-6 rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center z-50 bg-primary hover:bg-primary/90 text-primary-foreground"
             aria-label="Contact us"
           >
             <MessageCircle className="h-6 w-6" />
@@ -36,7 +36,7 @@ const FloatingContactButton = () => {
     <HoverCard openDelay={100} closeDelay={200}>
       <HoverCardTrigger asChild>
         <Button 
-          className="fixed bottom-6 right-6 rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center z-50 bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="fixed bottom-24 right-6 rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center z-50 bg-primary hover:bg-primary/90 text-primary-foreground"
           aria-label="Contact us"
         >
           <MessageCircle className="h-6 w-6" />

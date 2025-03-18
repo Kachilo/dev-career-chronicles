@@ -15,11 +15,17 @@ interface PostsTableProps {
 
 export const PostsTable = ({ posts, onDeletePost }: PostsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = (postId: string) => {
+    onDeletePost(postId);
+    setDeletingPostId(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -84,7 +90,9 @@ export const PostsTable = ({ posts, onDeletePost }: PostsTableProps) => {
                         </Link>
                       </Button>
                       
-                      <AlertDialog>
+                      <AlertDialog open={deletingPostId === post.id} onOpenChange={(open) => {
+                        if (!open) setDeletingPostId(null);
+                      }}>
                         <AlertDialogTrigger asChild>
                           <Button 
                             variant="ghost" 
@@ -92,6 +100,7 @@ export const PostsTable = ({ posts, onDeletePost }: PostsTableProps) => {
                             className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                             title="Delete post"
                             aria-label="Delete post"
+                            onClick={() => setDeletingPostId(post.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -106,7 +115,7 @@ export const PostsTable = ({ posts, onDeletePost }: PostsTableProps) => {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
-                              onClick={() => onDeletePost(post.id)}
+                              onClick={() => handleDelete(post.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Delete

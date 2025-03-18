@@ -23,6 +23,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { BlogProvider } from "@/context/BlogContext";
 import { Toaster } from "sonner";
 import FloatingContactButton from "@/components/FloatingContactButton";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/post/:slug" element={<BlogPostPage />} />
+                <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/categories/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/contact" element={<ContactPage />} />
@@ -43,11 +44,11 @@ function App() {
                 <Route path="/admin" element={<AdminPage />}>
                   <Route index element={<AdminPostsPage />} />
                   <Route path="posts" element={<AdminPostsPage />} />
+                  <Route path="posts/new" element={<AdminCreatePostPage />} />
+                  <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
                   <Route path="polls" element={<AdminPollsPage />} />
                   <Route path="messages" element={<AdminMessagesPage />} />
-                  <Route path="create-post" element={<AdminCreatePostPage />} />
-                  <Route path="edit-post/:id" element={<AdminEditPostPage />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
@@ -56,6 +57,7 @@ function App() {
             
             <Footer />
             <FloatingContactButton />
+            <WhatsAppButton />
             <Toaster />
           </div>
         </ThemeProvider>

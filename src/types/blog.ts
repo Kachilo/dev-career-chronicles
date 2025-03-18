@@ -88,7 +88,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type JsonPollOption = {
+export interface JsonPollOption {
   id: string;
   text: string;
   votes: number;

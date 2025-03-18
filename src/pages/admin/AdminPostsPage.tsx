@@ -2,7 +2,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { PostsTable } from "../../components/admin/PostsTable";
 import { useBlog } from "../../context/BlogContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 const AdminPostsPage = () => {
   const { posts, deletePost } = useBlog();
   const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
   
   useEffect(() => {
     console.log("Current posts in AdminPostsPage:", posts);
@@ -20,13 +21,25 @@ const AdminPostsPage = () => {
     new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
   );
   
-  const handleDeletePost = (postId: string) => {
-    deletePost(postId);
-    
-    toast({
-      title: "Post deleted",
-      description: "The post has been removed successfully."
-    });
+  const handleDeletePost = async (postId: string) => {
+    try {
+      setIsDeleting(true);
+      await deletePost(postId);
+      
+      toast({
+        title: "Post deleted",
+        description: "The post has been removed successfully."
+      });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the post. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (

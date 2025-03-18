@@ -86,6 +86,36 @@ export type Database = {
           },
         ]
       }
+      polls: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          options: Json
+          post_id: string | null
+          question: string
+          reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          options: Json
+          post_id?: string | null
+          question: string
+          reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          options?: Json
+          post_id?: string | null
+          question?: string
+          reference?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           author: string

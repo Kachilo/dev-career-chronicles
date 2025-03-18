@@ -18,6 +18,7 @@ import AdminPostsPage from "./pages/admin/AdminPostsPage";
 import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
+import AdminPollsPage from "./pages/admin/AdminPollsPage";
 import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import ScheduledPostsPage from "./pages/admin/ScheduledPostsPage";
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -50,6 +51,7 @@ const App = () => (
                   <Route path="posts/new" element={<AdminCreatePostPage />} />
                   <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
+                  <Route path="polls" element={<AdminPollsPage />} />
                   <Route path="analytics" element={<AnalyticsDashboard />} />
                   <Route path="scheduled" element={<ScheduledPostsPage />} />
                 </Route>

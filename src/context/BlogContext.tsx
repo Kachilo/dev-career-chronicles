@@ -36,7 +36,6 @@ interface BlogProviderProps {
 
 export const BlogProvider = ({ children }: BlogProviderProps) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [polls, setPolls] = useState<Poll[]>([]);
   const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([
     {
       id: "1",
@@ -71,6 +70,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       category: "digital-marketing"
     }
   ]);
+  const [polls, setPolls] = useState<Poll[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -144,7 +144,56 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       }
     };
 
+    // Add function to fetch polls
+    const fetchPolls = async () => {
+      try {
+        console.log("Fetching polls from Supabase...");
+        const { data, error } = await supabase
+          .from("polls")
+          .select("*");
+        
+        if (error) {
+          console.error("Error fetching polls:", error);
+          return;
+        }
+        
+        console.log("Polls fetched successfully:", data);
+        
+        if (data) {
+          const formattedPolls: Poll[] = data.map(poll => {
+            let pollOptions = [];
+            
+            if (poll.options) {
+              try {
+                if (typeof poll.options === 'string') {
+                  pollOptions = JSON.parse(poll.options);
+                } else {
+                  pollOptions = poll.options;
+                }
+              } catch (e) {
+                console.error("Error parsing poll options:", e);
+              }
+            }
+            
+            return {
+              id: poll.id,
+              question: poll.question,
+              options: pollOptions,
+              endDate: poll.end_date,
+              postId: poll.post_id || undefined,
+              reference: poll.reference || "OMAR WASHE KONDE"
+            };
+          });
+          
+          setPolls(formattedPolls);
+        }
+      } catch (error) {
+        console.error("Failed to fetch polls:", error);
+      }
+    };
+
     fetchPosts();
+    fetchPolls();
   }, []);
 
   const fetchCommentsForPost = async (postId: string) => {
@@ -490,7 +539,13 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       try {
         const { data, error } = await supabase
           .from("polls")
-          .insert(newPoll)
+          .insert({
+            question: newPoll.question,
+            options: newPoll.options,
+            end_date: newPoll.endDate,
+            post_id: newPoll.postId,
+            reference: newPoll.reference || "OMAR WASHE KONDE"
+          })
           .select();
         
         if (error) {
@@ -512,29 +567,30 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   
   const votePoll = async (pollId: string, optionId: string) => {
     try {
-      setPolls((prevPolls) =>
-        prevPolls.map((poll) =>
-          poll.id === pollId
-            ? {
-                ...poll,
-                options: poll.options.map((option) =>
-                  option.id === optionId
-                    ? { ...option, votes: option.votes + 1 }
-                    : option
-                )
-              }
-            : poll
-        )
+      // Find the poll and update the option votes
+      const updatedPolls = polls.map((poll) =>
+        poll.id === pollId
+          ? {
+              ...poll,
+              options: poll.options.map((option) =>
+                option.id === optionId
+                  ? { ...option, votes: option.votes + 1 }
+                  : option
+              )
+            }
+          : poll
       );
       
-      const poll = polls.find(p => p.id === pollId);
-      if (poll) {
+      setPolls(updatedPolls);
+      
+      // Find the updated poll to save to Supabase
+      const updatedPoll = updatedPolls.find(p => p.id === pollId);
+      
+      if (updatedPoll) {
         try {
           const { error } = await supabase
             .from("polls")
-            .update({ options: poll.options.map(opt => 
-              opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
-            )})
+            .update({ options: updatedPoll.options })
             .eq("id", pollId);
           
           if (error) {

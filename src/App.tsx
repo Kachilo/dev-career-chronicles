@@ -1,13 +1,8 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { BlogProvider } from "./context/BlogContext";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import NotFound from "./pages/NotFound";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import BlogPostPage from "./pages/BlogPostPage";
 import CategoryPage from "./pages/CategoryPage";
@@ -15,32 +10,31 @@ import SearchPage from "./pages/SearchPage";
 import ContactPage from "./pages/ContactPage";
 import AdminPage from "./pages/admin/AdminPage";
 import AdminPostsPage from "./pages/admin/AdminPostsPage";
-import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
-import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
 import AdminPollsPage from "./pages/admin/AdminPollsPage";
 import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
-import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
-import ScheduledPostsPage from "./pages/admin/ScheduledPostsPage";
-import WhatsAppButton from "./components/WhatsAppButton";
-import { WelcomePopup } from "./components/WelcomePopup";
-import { ChatSupport } from "./components/ChatSupport";
+import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
+import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
+import NotFound from "./pages/NotFound";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { BlogProvider } from "@/context/BlogContext";
+import { Toaster } from "sonner";
+import FloatingContactButton from "@/components/FloatingContactButton";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BlogProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
+function App() {
+  return (
+    <BrowserRouter>
+      <BlogProvider>
+        <ThemeProvider defaultTheme="system" storageKey="blog-theme">
+          <div className="relative min-h-screen flex flex-col">
             <Navbar />
-            <main className="flex-1">
+            
+            <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/blog/:slug" element={<BlogPostPage />} />
+                <Route path="/post/:slug" element={<BlogPostPage />} />
                 <Route path="/categories/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/contact" element={<ContactPage />} />
@@ -48,26 +42,25 @@ const App = () => (
                 <Route path="/admin" element={<AdminPage />}>
                   <Route index element={<AdminPostsPage />} />
                   <Route path="posts" element={<AdminPostsPage />} />
-                  <Route path="posts/new" element={<AdminCreatePostPage />} />
-                  <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
                   <Route path="polls" element={<AdminPollsPage />} />
                   <Route path="messages" element={<AdminMessagesPage />} />
-                  <Route path="analytics" element={<AnalyticsDashboard />} />
-                  <Route path="scheduled" element={<ScheduledPostsPage />} />
+                  <Route path="create-post" element={<AdminCreatePostPage />} />
+                  <Route path="edit-post/:id" element={<AdminEditPostPage />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+            
             <Footer />
-            <WhatsAppButton />
-            <WelcomePopup />
+            <FloatingContactButton />
+            <Toaster />
           </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </BlogProvider>
-  </QueryClientProvider>
-);
+        </ThemeProvider>
+      </BlogProvider>
+    </BrowserRouter>
+  );
+}
 
 export default App;

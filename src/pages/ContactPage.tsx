@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 
 const ContactPage = () => {
@@ -15,21 +15,46 @@ const ContactPage = () => {
         </div>
         
         <div className="grid md:grid-cols-2 gap-8 items-start">
-          <Card>
+          <Card className="bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Contact Information</CardTitle>
               <CardDescription>
                 Reach out to us through the following channels.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-primary" />
-                <span>omaryw003@gmail.com</span>
+                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm text-muted-foreground">omaryw003@gmail.com</p>
+                </div>
               </div>
               
-              <div className="mt-6">
-                <h3 className="font-semibold mb-2">Follow Us</h3>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm text-muted-foreground">Available upon request</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Location</p>
+                  <p className="text-sm text-muted-foreground">London, United Kingdom</p>
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <h3 className="font-semibold mb-3">Follow Us</h3>
                 <div className="flex space-x-4">
                   {/* Social media icons would go here */}
                 </div>
@@ -37,7 +62,7 @@ const ContactPage = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Send a Message</CardTitle>
               <CardDescription>

@@ -1,3 +1,4 @@
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -49,7 +50,7 @@ export interface Poll {
   options: PollOption[];
   endDate: string;
   postId?: string;
-  reference?: string; // Added reference field
+  reference?: string;
 }
 
 export interface PollOption {
@@ -76,4 +77,11 @@ export interface Message {
   admin_reply: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Types for JSON serialization with Supabase
+export type JsonPollOption = {
+  id: string;
+  text: string;
+  votes: number;
 }

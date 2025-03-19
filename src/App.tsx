@@ -24,6 +24,7 @@ import { BlogProvider } from "@/context/BlogContext";
 import { Toaster } from "sonner";
 import FloatingContactButton from "@/components/FloatingContactButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import SupportPopup from "@/components/SupportPopup";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Footer />
             <FloatingContactButton />
             <WhatsAppButton />
+            <SupportPopup />
             <Toaster />
           </div>
         </ThemeProvider>

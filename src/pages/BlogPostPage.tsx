@@ -7,7 +7,7 @@ import { ShareButtons } from "../components/ShareButtons";
 import { RelatedPosts } from "../components/RelatedPosts";
 import { TrendingPosts } from "../components/TrendingPosts";
 import { PollWidget } from "../components/PollWidget";
-import { DonationButton } from "../components/DonationButton";
+import DonationButton from "../components/DonationButton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Eye } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";

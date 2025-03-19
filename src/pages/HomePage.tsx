@@ -5,9 +5,10 @@ import { CategoryList } from "../components/CategoryList";
 import { TrendingPosts } from "../components/TrendingPosts";
 import { PollWidget } from "../components/PollWidget";
 import { AffiliateProducts } from "../components/AffiliateProducts";
-import { DonationButton } from "../components/DonationButton";
+import DonationButton from "../components/DonationButton";
 import { useBlog } from "../context/BlogContext";
 import { categories } from "../data/blogData";
+import { HeroSlider } from "@/components/HeroSlider";
 
 const HomePage = () => {
   const { posts, polls, affiliateLinks, votePoll } = useBlog();
@@ -43,17 +44,21 @@ const HomePage = () => {
 
   return (
     <div className="container py-8 space-y-12">
-      {/* Hero Banner */}
-      <section className="banner-gradient text-white rounded-lg p-8 md:p-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Insights on Freelancing, Web Development, and Career Growth
-          </h1>
-          <p className="text-lg md:text-xl opacity-90 mb-6">
-            Practical advice to help you succeed in the digital world
-          </p>
-          <div className="flex justify-center">
+      {/* Hero Slider */}
+      <HeroSlider />
+      
+      {/* Featured Content Section */}
+      <section className="py-12 bg-muted/30 rounded-lg px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold">Featured Content</h2>
             <DonationButton />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedPosts.slice(0, 3).map((post) => (
+              <BlogCard key={post.id} post={post} />
+            ))}
           </div>
         </div>
       </section>
@@ -61,16 +66,6 @@ const HomePage = () => {
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          {/* Featured Post */}
-          {featuredPost && (
-            <section className="mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Featured Article</h2>
-              </div>
-              <BlogCard post={featuredPost} featured />
-            </section>
-          )}
-          
           {/* Recent Posts */}
           <section>
             <div className="flex items-center justify-between mb-6">

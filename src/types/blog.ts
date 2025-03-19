@@ -88,8 +88,10 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Make sure JsonPollOption has a string index to fix the type error
 export interface JsonPollOption {
   id: string;
   text: string;
   votes: number;
+  [key: string]: Json | undefined;
 }

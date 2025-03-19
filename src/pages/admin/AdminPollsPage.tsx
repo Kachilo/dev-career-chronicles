@@ -22,14 +22,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { BarChart2, PlusCircle, Trash2, Edit } from "lucide-react";
+import { PollWidget } from "@/components/PollWidget";
+import { BarChart2, PlusCircle } from "lucide-react";
 import { Poll } from "@/types/blog";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 const AdminPollsPage = () => {
-  const { polls, addPoll } = useBlog();
+  const { polls, addPoll, deletePoll, updatePoll } = useBlog();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState([
@@ -56,40 +56,24 @@ const AdminPollsPage = () => {
     if (options.length > 2) {
       setOptions(options.filter((option) => option.id !== id));
     } else {
-      toast({
-        title: "Error",
-        description: "A poll must have at least 2 options",
-        variant: "destructive",
-      });
+      toast.error("A poll must have at least 2 options");
     }
   };
 
   const handleSubmit = () => {
     if (!question) {
-      toast({
-        title: "Error",
-        description: "Please enter a question",
-        variant: "destructive",
-      });
+      toast.error("Please enter a question");
       return;
     }
 
     if (!endDate) {
-      toast({
-        title: "Error",
-        description: "Please select an end date",
-        variant: "destructive",
-      });
+      toast.error("Please select an end date");
       return;
     }
 
     const validOptions = options.filter((option) => option.text.trim() !== "");
     if (validOptions.length < 2) {
-      toast({
-        title: "Error",
-        description: "Please enter at least 2 options",
-        variant: "destructive",
-      });
+      toast.error("Please enter at least 2 options");
       return;
     }
 
@@ -102,10 +86,7 @@ const AdminPollsPage = () => {
     };
 
     addPoll(newPoll);
-    toast({
-      title: "Success",
-      description: "Poll created successfully",
-    });
+    toast.success("Poll created successfully");
 
     // Reset form
     setQuestion("");
@@ -117,6 +98,16 @@ const AdminPollsPage = () => {
     setPostId("");
     setReference("OMAR WASHE KONDE");
     setOpen(false);
+  };
+
+  const handleDeletePoll = (pollId: string) => {
+    deletePoll(pollId);
+    toast.success("Poll deleted successfully");
+  };
+  
+  const handleUpdatePoll = (pollId: string, updatedPoll: Omit<Poll, "id">) => {
+    updatePoll(pollId, updatedPoll);
+    toast.success("Poll updated successfully");
   };
 
   return (
@@ -163,7 +154,19 @@ const AdminPollsPage = () => {
                         size="icon"
                         onClick={() => removeOption(option.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remove</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
                       </Button>
                     </div>
                   ))}
@@ -220,70 +223,19 @@ const AdminPollsPage = () => {
       </div>
 
       {polls.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Polls</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Question</TableHead>
-                  <TableHead>Options</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {polls.map((poll) => (
-                  <TableRow key={poll.id}>
-                    <TableCell className="font-medium">
-                      {poll.question}
-                    </TableCell>
-                    <TableCell>{poll.options.length} options</TableCell>
-                    <TableCell>
-                      {new Date(poll.endDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>{poll.reference || "OMAR WASHE KONDE"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Poll</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this poll? This action
-                                cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+          {polls.map((poll) => (
+            <div key={poll.id}>
+              <PollWidget 
+                poll={poll} 
+                onVote={(pollId, optionId) => {}} 
+                onDelete={handleDeletePoll} 
+                onEdit={handleUpdatePoll}
+                isAdmin={true}
+              />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-md border p-8">
           <BarChart2 className="h-12 w-12 text-muted-foreground mb-4" />

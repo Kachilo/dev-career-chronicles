@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BlogPost, Comment, Poll, AffiliateLink, Message, Json, JsonPollOption } from "../types/blog";
@@ -19,6 +18,8 @@ interface BlogContextProps {
   dislikeComment: (postId: string, commentId: string) => void;
   incrementViews: (postId: string) => void;
   addPoll: (poll: Omit<Poll, "id">) => void;
+  updatePoll: (pollId: string, pollData: Omit<Poll, "id">) => void;
+  deletePoll: (pollId: string) => void;
   votePoll: (pollId: string, optionId: string) => void;
   addMessage: (message: Omit<Message, "id" | "created_at" | "updated_at" | "is_read" | "admin_reply">) => Promise<void>;
   markMessageAsRead: (messageId: string) => Promise<void>;
@@ -582,7 +583,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           .from("polls")
           .insert({
             question: newPoll.question,
-            options: jsonOptions as Json,
+            options: jsonOptions as unknown as Json,
             end_date: newPoll.endDate,
             post_id: newPoll.postId,
             reference: newPoll.reference || "OMAR WASHE KONDE"
@@ -603,6 +604,67 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       console.log("New poll added:", newPoll);
     } catch (error) {
       console.error("Failed to add poll:", error);
+    }
+  };
+  
+  const updatePoll = async (pollId: string, pollData: Omit<Poll, "id">) => {
+    try {
+      const updatedPolls = polls.map(poll => 
+        poll.id === pollId 
+          ? { ...pollData, id: pollId } 
+          : poll
+      );
+      
+      setPolls(updatedPolls);
+      
+      const updatedPoll = updatedPolls.find(p => p.id === pollId);
+      
+      if (updatedPoll) {
+        try {
+          // Convert poll options to Json type for Supabase
+          const jsonOptions: JsonPollOption[] = updatedPoll.options.map(opt => ({
+            id: opt.id,
+            text: opt.text,
+            votes: opt.votes
+          }));
+          
+          const { error } = await supabase
+            .from("polls")
+            .update({ 
+              question: updatedPoll.question,
+              options: jsonOptions as unknown as Json,
+              end_date: updatedPoll.endDate,
+              post_id: updatedPoll.postId,
+              reference: updatedPoll.reference
+            })
+            .eq("id", pollId);
+          
+          if (error) {
+            console.error("Error updating poll in Supabase:", error);
+          }
+        } catch (e) {
+          console.error("Supabase poll update failed:", e);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update poll:", error);
+    }
+  };
+  
+  const deletePoll = async (pollId: string) => {
+    try {
+      setPolls(prevPolls => prevPolls.filter(poll => poll.id !== pollId));
+      
+      const { error } = await supabase
+        .from("polls")
+        .delete()
+        .eq("id", pollId);
+      
+      if (error) {
+        console.error("Error deleting poll from Supabase:", error);
+      }
+    } catch (error) {
+      console.error("Failed to delete poll:", error);
     }
   };
   
@@ -749,6 +811,8 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         dislikeComment,
         incrementViews,
         addPoll,
+        updatePoll,
+        deletePoll,
         votePoll,
         addMessage,
         markMessageAsRead,

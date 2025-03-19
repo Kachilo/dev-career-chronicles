@@ -9,10 +9,13 @@ import BlogPostPage from "./pages/BlogPostPage";
 import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
 import ContactPage from "./pages/ContactPage";
+import PodcastPage from "./pages/PodcastPage";
+import PodcastDetailPage from "./pages/PodcastDetailPage";
 import AdminPage from "./pages/admin/AdminPage";
 import AdminPostsPage from "./pages/admin/AdminPostsPage";
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage";
 import AdminPollsPage from "./pages/admin/AdminPollsPage";
+import AdminPodcastsPage from "./pages/admin/AdminPodcastsPage";
 import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
 import AdminCreatePostPage from "./pages/admin/AdminCreatePostPage";
 import AdminEditPostPage from "./pages/admin/AdminEditPostPage";
@@ -41,6 +44,8 @@ function App() {
                 <Route path="/categories/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/podcast" element={<PodcastPage />} />
+                <Route path="/podcast/:podcastId" element={<PodcastDetailPage />} />
                 
                 <Route path="/admin" element={<AdminPage />}>
                   <Route index element={<AdminPostsPage />} />
@@ -49,6 +54,7 @@ function App() {
                   <Route path="posts/edit/:postId" element={<AdminEditPostPage />} />
                   <Route path="comments" element={<AdminCommentsPage />} />
                   <Route path="polls" element={<AdminPollsPage />} />
+                  <Route path="podcasts" element={<AdminPodcastsPage />} />
                   <Route path="messages" element={<AdminMessagesPage />} />
                 </Route>
                 

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BlogPost, Comment, Poll, AffiliateLink, Message, Json, JsonPollOption } from "../types/blog";
+import { BlogPost, Comment, Poll, AffiliateLink, Message, Json, JsonPollOption, PodcastEpisode, PodcastComment, PodcastTimestamp } from "../types/blog";
 import { supabase } from "../integrations/supabase/client";
 
 interface BlogContextProps {
@@ -8,6 +8,7 @@ interface BlogContextProps {
   polls: Poll[];
   affiliateLinks: AffiliateLink[];
   messages: Message[];
+  podcasts: PodcastEpisode[];
   addPost: (post: Omit<BlogPost, "id" | "comments" | "reactions" | "views">) => void;
   updatePost: (postId: string, postData: Partial<BlogPost>) => void;
   deletePost: (postId: string) => void;
@@ -24,6 +25,14 @@ interface BlogContextProps {
   addMessage: (message: Omit<Message, "id" | "created_at" | "updated_at" | "is_read" | "admin_reply">) => Promise<void>;
   markMessageAsRead: (messageId: string) => Promise<void>;
   replyToMessage: (messageId: string, reply: string) => Promise<void>;
+  
+  addPodcast: (podcast: Omit<PodcastEpisode, "id" | "comments" | "views" | "uploadDate">) => Promise<void>;
+  updatePodcast: (podcastId: string, podcastData: Partial<PodcastEpisode>) => Promise<void>;
+  deletePodcast: (podcastId: string) => Promise<void>;
+  addPodcastComment: (podcastId: string, comment: Omit<PodcastComment, "id" | "date" | "likes" | "dislikes" | "podcastId">) => Promise<void>;
+  likePodcastComment: (podcastId: string, commentId: string) => Promise<void>;
+  dislikePodcastComment: (podcastId: string, commentId: string) => Promise<void>;
+  incrementPodcastViews: (podcastId: string) => Promise<void>;
 }
 
 const BlogContext = createContext<BlogContextProps | undefined>(undefined);
@@ -78,6 +87,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
   ]);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [podcasts, setPodcasts] = useState<PodcastEpisode[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -174,7 +184,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
                 if (typeof poll.options === 'string') {
                   pollOptions = JSON.parse(poll.options);
                 } else {
-                  // Convert from Json type to PollOption type
                   pollOptions = (poll.options as any[]).map(opt => ({
                     id: opt.id,
                     text: opt.text,
@@ -226,9 +235,84 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       }
     };
 
+    const fetchPodcasts = async () => {
+      try {
+        console.log("Fetching podcasts from Supabase...");
+        const { data, error } = await supabase
+          .from("podcasts")
+          .select("*")
+          .order("upload_date", { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching podcasts:", error);
+          return;
+        }
+        
+        console.log("Podcasts fetched successfully:", data);
+        
+        if (data) {
+          const formattedPodcasts: PodcastEpisode[] = await Promise.all(data.map(async (podcast) => {
+            const { data: commentsData, error: commentsError } = await supabase
+              .from("podcast_comments")
+              .select("*")
+              .eq("podcast_id", podcast.id)
+              .order("date", { ascending: false });
+            
+            if (commentsError) {
+              console.error(`Error fetching comments for podcast ${podcast.id}:`, commentsError);
+            }
+            
+            const comments: PodcastComment[] = commentsData ? commentsData.map(comment => ({
+              id: comment.id,
+              podcastId: comment.podcast_id,
+              name: comment.name,
+              content: comment.content,
+              date: comment.date,
+              likes: comment.likes || 0,
+              dislikes: comment.dislikes || 0
+            })) : [];
+            
+            let formattedTimestamps: PodcastTimestamp[] = [];
+            if (podcast.timestamps) {
+              try {
+                if (typeof podcast.timestamps === 'string') {
+                  formattedTimestamps = JSON.parse(podcast.timestamps);
+                } else {
+                  formattedTimestamps = podcast.timestamps as unknown as PodcastTimestamp[];
+                }
+              } catch (e) {
+                console.error("Error parsing podcast timestamps:", e);
+              }
+            }
+
+            return {
+              id: podcast.id,
+              title: podcast.title,
+              description: podcast.description,
+              audioUrl: podcast.audio_url,
+              episodeNumber: podcast.episode_number,
+              duration: podcast.duration,
+              uploadDate: podcast.upload_date,
+              thumbnailUrl: podcast.thumbnail_url,
+              guestNames: podcast.guest_names || [],
+              timestamps: formattedTimestamps,
+              category: podcast.category,
+              views: podcast.views,
+              comments: comments
+            };
+          }));
+          
+          setPodcasts(formattedPodcasts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch podcasts:", error);
+      }
+    };
+
     fetchPosts();
     fetchPolls();
     fetchMessages();
+    fetchPodcasts();
   }, []);
 
   const fetchCommentsForPost = async (postId: string) => {
@@ -572,7 +656,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       };
       
       try {
-        // Convert poll options to Json type for Supabase
         const jsonOptions: JsonPollOption[] = newPoll.options.map(opt => ({
           id: opt.id,
           text: opt.text,
@@ -621,7 +704,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       
       if (updatedPoll) {
         try {
-          // Convert poll options to Json type for Supabase
           const jsonOptions: JsonPollOption[] = updatedPoll.options.map(opt => ({
             id: opt.id,
             text: opt.text,
@@ -689,7 +771,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       
       if (updatedPoll) {
         try {
-          // Convert poll options to Json type for Supabase
           const jsonOptions: JsonPollOption[] = updatedPoll.options.map(opt => ({
             id: opt.id,
             text: opt.text,
@@ -794,6 +875,272 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
     }
   };
 
+  const addPodcast = async (podcast: Omit<PodcastEpisode, "id" | "comments" | "views" | "uploadDate">) => {
+    try {
+      console.log("Adding podcast to Supabase:", podcast);
+      
+      let formattedTimestamps = null;
+      if (podcast.timestamps && podcast.timestamps.length > 0) {
+        formattedTimestamps = podcast.timestamps;
+      }
+      
+      const { data, error } = await supabase
+        .from("podcasts")
+        .insert({
+          title: podcast.title,
+          description: podcast.description,
+          audio_url: podcast.audioUrl,
+          episode_number: podcast.episodeNumber,
+          duration: podcast.duration,
+          thumbnail_url: podcast.thumbnailUrl,
+          guest_names: podcast.guestNames || [],
+          timestamps: formattedTimestamps,
+          category: podcast.category,
+          views: 0
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding podcast:", error);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error("No data returned after insert");
+        throw new Error("Failed to add podcast");
+      }
+      
+      console.log("Podcast added successfully:", data[0]);
+      
+      const newPodcast: PodcastEpisode = {
+        id: data[0].id,
+        title: data[0].title,
+        description: data[0].description,
+        audioUrl: data[0].audio_url,
+        episodeNumber: data[0].episode_number,
+        duration: data[0].duration,
+        uploadDate: data[0].upload_date,
+        thumbnailUrl: data[0].thumbnail_url,
+        guestNames: data[0].guest_names || [],
+        timestamps: data[0].timestamps || [],
+        category: data[0].category,
+        views: 0,
+        comments: []
+      };
+      
+      setPodcasts((prevPodcasts) => [newPodcast, ...prevPodcasts]);
+      return newPodcast;
+    } catch (error) {
+      console.error("Failed to add podcast:", error);
+      throw error;
+    }
+  };
+
+  const updatePodcast = async (podcastId: string, podcastData: Partial<PodcastEpisode>) => {
+    try {
+      const supabaseData: any = {};
+      
+      if (podcastData.title) supabaseData.title = podcastData.title;
+      if (podcastData.description) supabaseData.description = podcastData.description;
+      if (podcastData.audioUrl) supabaseData.audio_url = podcastData.audioUrl;
+      if (podcastData.episodeNumber) supabaseData.episode_number = podcastData.episodeNumber;
+      if (podcastData.duration) supabaseData.duration = podcastData.duration;
+      if (podcastData.thumbnailUrl) supabaseData.thumbnail_url = podcastData.thumbnailUrl;
+      if (podcastData.guestNames) supabaseData.guest_names = podcastData.guestNames;
+      if (podcastData.timestamps) supabaseData.timestamps = podcastData.timestamps;
+      if (podcastData.category) supabaseData.category = podcastData.category;
+      
+      const { error } = await supabase
+        .from("podcasts")
+        .update(supabaseData)
+        .eq("id", podcastId);
+      
+      if (error) {
+        console.error("Error updating podcast:", error);
+        throw error;
+      }
+      
+      setPodcasts((prevPodcasts) =>
+        prevPodcasts.map((podcast) =>
+          podcast.id === podcastId ? { ...podcast, ...podcastData } : podcast
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update podcast:", error);
+      throw error;
+    }
+  };
+
+  const deletePodcast = async (podcastId: string) => {
+    try {
+      const { error } = await supabase
+        .from("podcasts")
+        .delete()
+        .eq("id", podcastId);
+      
+      if (error) {
+        console.error("Error deleting podcast:", error);
+        throw error;
+      }
+      
+      setPodcasts((prevPodcasts) => prevPodcasts.filter((podcast) => podcast.id !== podcastId));
+    } catch (error) {
+      console.error("Failed to delete podcast:", error);
+      throw error;
+    }
+  };
+
+  const addPodcastComment = async (podcastId: string, comment: Omit<PodcastComment, "id" | "date" | "likes" | "dislikes" | "podcastId">) => {
+    try {
+      const { data, error } = await supabase
+        .from("podcast_comments")
+        .insert({
+          podcast_id: podcastId,
+          name: comment.name,
+          content: comment.content,
+          date: new Date().toISOString(),
+          likes: 0,
+          dislikes: 0
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding podcast comment:", error);
+        throw error;
+      }
+      
+      console.log("Podcast comment added successfully:", data);
+      
+      if (data && data.length > 0) {
+        const newComment: PodcastComment = {
+          id: data[0].id,
+          podcastId: data[0].podcast_id,
+          name: data[0].name,
+          content: data[0].content,
+          date: data[0].date,
+          likes: 0,
+          dislikes: 0
+        };
+        
+        setPodcasts((prevPodcasts) =>
+          prevPodcasts.map((podcast) =>
+            podcast.id === podcastId
+              ? { ...podcast, comments: [newComment, ...podcast.comments] }
+              : podcast
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to add podcast comment:", error);
+      throw error;
+    }
+  };
+
+  const likePodcastComment = async (podcastId: string, commentId: string) => {
+    try {
+      const podcast = podcasts.find(p => p.id === podcastId);
+      const comment = podcast?.comments.find(c => c.id === commentId);
+      
+      if (!comment) return;
+      
+      const { error } = await supabase
+        .from("podcast_comments")
+        .update({ likes: comment.likes + 1 })
+        .eq("id", commentId);
+      
+      if (error) {
+        console.error("Error liking podcast comment:", error);
+        throw error;
+      }
+      
+      setPodcasts((prevPodcasts) =>
+        prevPodcasts.map((podcast) =>
+          podcast.id === podcastId
+            ? {
+                ...podcast,
+                comments: podcast.comments.map((c) =>
+                  c.id === commentId
+                    ? { ...c, likes: c.likes + 1 }
+                    : c
+                )
+              }
+            : podcast
+        )
+      );
+    } catch (error) {
+      console.error("Failed to like podcast comment:", error);
+      throw error;
+    }
+  };
+
+  const dislikePodcastComment = async (podcastId: string, commentId: string) => {
+    try {
+      const podcast = podcasts.find(p => p.id === podcastId);
+      const comment = podcast?.comments.find(c => c.id === commentId);
+      
+      if (!comment) return;
+      
+      const { error } = await supabase
+        .from("podcast_comments")
+        .update({ dislikes: comment.dislikes + 1 })
+        .eq("id", commentId);
+      
+      if (error) {
+        console.error("Error disliking podcast comment:", error);
+        throw error;
+      }
+      
+      setPodcasts((prevPodcasts) =>
+        prevPodcasts.map((podcast) =>
+          podcast.id === podcastId
+            ? {
+                ...podcast,
+                comments: podcast.comments.map((c) =>
+                  c.id === commentId
+                    ? { ...c, dislikes: c.dislikes + 1 }
+                    : c
+                )
+              }
+            : podcast
+        )
+      );
+    } catch (error) {
+      console.error("Failed to dislike podcast comment:", error);
+      throw error;
+    }
+  };
+
+  const incrementPodcastViews = async (podcastId: string) => {
+    try {
+      const podcast = podcasts.find(p => p.id === podcastId);
+      
+      if (!podcast) return;
+      
+      const newViewCount = (podcast.views || 0) + 1;
+      
+      const { error } = await supabase
+        .from("podcasts")
+        .update({ views: newViewCount })
+        .eq("id", podcastId);
+      
+      if (error) {
+        console.error("Error incrementing podcast views:", error);
+        throw error;
+      }
+      
+      setPodcasts((prevPodcasts) =>
+        prevPodcasts.map((p) =>
+          p.id === podcastId
+            ? { ...p, views: newViewCount }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error("Failed to increment podcast views:", error);
+      throw error;
+    }
+  };
+
   return (
     <BlogContext.Provider
       value={{
@@ -801,6 +1148,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         polls,
         affiliateLinks,
         messages,
+        podcasts,
         addPost,
         updatePost,
         deletePost,
@@ -816,7 +1164,14 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
         votePoll,
         addMessage,
         markMessageAsRead,
-        replyToMessage
+        replyToMessage,
+        addPodcast,
+        updatePodcast,
+        deletePodcast,
+        addPodcastComment,
+        likePodcastComment,
+        dislikePodcastComment,
+        incrementPodcastViews
       }}
     >
       {children}

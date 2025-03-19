@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
-import { Search, Menu, X, Home, User, Info, Mail } from "lucide-react";
+import { Search, Menu, X, Home, User, Info, Mail, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +49,13 @@ const Navbar = () => {
                     <Link to="/" className={navigationMenuTriggerStyle()}>
                       <Home className="mr-2 h-4 w-4" />
                       Home
+                    </Link>
+                  </NavigationMenuItem>
+                  
+                  <NavigationMenuItem>
+                    <Link to="/podcast" className={navigationMenuTriggerStyle()}>
+                      <Headphones className="mr-2 h-4 w-4" />
+                      Podcast
                     </Link>
                   </NavigationMenuItem>
                   
@@ -236,6 +243,14 @@ const Navbar = () => {
               >
                 <Home className="mr-2 h-5 w-5" />
                 Home
+              </Link>
+              <Link 
+                to="/podcast" 
+                className="flex items-center py-2 text-lg font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Headphones className="mr-2 h-5 w-5" />
+                Podcast
               </Link>
               <Link 
                 to="/about" 

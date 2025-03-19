@@ -9,6 +9,7 @@ import DonationButton from "../components/DonationButton";
 import { useBlog } from "../context/BlogContext";
 import { categories } from "../data/blogData";
 import { HeroSlider } from "@/components/HeroSlider";
+import { FeaturedContent } from "@/components/FeaturedContent";
 
 const HomePage = () => {
   const { posts, polls, affiliateLinks, votePoll } = useBlog();
@@ -48,20 +49,7 @@ const HomePage = () => {
       <HeroSlider />
       
       {/* Featured Content Section */}
-      <section className="py-12 bg-muted/30 rounded-lg px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Featured Content</h2>
-            <DonationButton />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedPosts.slice(0, 3).map((post) => (
-              <BlogCard key={post.id} post={post} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturedContent />
       
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -119,6 +119,89 @@ export type Database = {
         }
         Relationships: []
       }
+      podcast_comments: {
+        Row: {
+          content: string
+          date: string
+          dislikes: number
+          id: string
+          likes: number
+          name: string
+          podcast_id: string
+        }
+        Insert: {
+          content: string
+          date?: string
+          dislikes?: number
+          id?: string
+          likes?: number
+          name: string
+          podcast_id: string
+        }
+        Update: {
+          content?: string
+          date?: string
+          dislikes?: number
+          id?: string
+          likes?: number
+          name?: string
+          podcast_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_comments_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcasts: {
+        Row: {
+          audio_url: string
+          category: string
+          description: string
+          duration: string
+          episode_number: number
+          guest_names: string[] | null
+          id: string
+          thumbnail_url: string | null
+          timestamps: Json | null
+          title: string
+          upload_date: string
+          views: number
+        }
+        Insert: {
+          audio_url: string
+          category: string
+          description: string
+          duration: string
+          episode_number: number
+          guest_names?: string[] | null
+          id?: string
+          thumbnail_url?: string | null
+          timestamps?: Json | null
+          title: string
+          upload_date?: string
+          views?: number
+        }
+        Update: {
+          audio_url?: string
+          category?: string
+          description?: string
+          duration?: string
+          episode_number?: number
+          guest_names?: string[] | null
+          id?: string
+          thumbnail_url?: string | null
+          timestamps?: Json | null
+          title?: string
+          upload_date?: string
+          views?: number
+        }
+        Relationships: []
+      }
       polls: {
         Row: {
           created_at: string

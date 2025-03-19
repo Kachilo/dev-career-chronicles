@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PenLine, Users, BarChart2, Inbox } from "lucide-react";
+import { PenLine, Users, BarChart2, Inbox, Headphones } from "lucide-react";
 import { AdminPinScreen } from "../../components/admin/AdminPinScreen";
 import { useBlog } from "@/context/BlogContext";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ const AdminPage = () => {
   const isPostsPath = location.pathname === "/admin" || location.pathname === "/admin/posts";
   const isCommentsPath = location.pathname === "/admin/comments";
   const isPollsPath = location.pathname === "/admin/polls";
+  const isPodcastsPath = location.pathname === "/admin/podcasts";
   const isMessagesPath = location.pathname === "/admin/messages";
 
   return (
@@ -36,6 +37,16 @@ const AdminPage = () => {
             <Link to="/admin/posts">
               <PenLine className="h-4 w-4 mr-2" />
               Manage Posts
+            </Link>
+          </Button>
+          
+          <Button
+            variant={isPodcastsPath ? "default" : "outline"}
+            asChild
+          >
+            <Link to="/admin/podcasts">
+              <Headphones className="h-4 w-4 mr-2" />
+              Manage Podcasts
             </Link>
           </Button>
           

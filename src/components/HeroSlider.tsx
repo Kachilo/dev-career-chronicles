@@ -13,21 +13,21 @@ interface SlideProps {
 
 const slides: SlideProps[] = [
   {
-    imageUrl: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=1920&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?q=80&w=1920&auto=format&fit=crop",
     title: "Insights That Transform",
     subtitle: "Explore our collection of articles, guides, and resources for modern professionals.",
     buttonText: "Explore Articles",
     buttonLink: "/categories/web-development"
   },
   {
-    imageUrl: "https://images.unsplash.com/photo-1498758536662-35b82cd15e29?q=80&w=1920&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1920&auto=format&fit=crop",
     title: "Career Growth Strategies",
     subtitle: "Discover proven methods to accelerate your professional development.",
     buttonText: "Read Guides",
     buttonLink: "/categories/career"
   },
   {
-    imageUrl: "https://images.unsplash.com/photo-1532622785990-d2c36a76f5a6?q=80&w=1920&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1920&auto=format&fit=crop",
     title: "Freelancing Excellence",
     subtitle: "Build a thriving independent career with our expert insights.",
     buttonText: "Start Learning",

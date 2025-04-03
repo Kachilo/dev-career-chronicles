@@ -894,7 +894,7 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
           duration: podcast.duration,
           thumbnail_url: podcast.thumbnailUrl,
           guest_names: podcast.guestNames || [],
-          timestamps: formattedTimestamps,
+          timestamps: formattedTimestamps as PodcastTimestamp[],
           category: podcast.category,
           views: 0
         })
@@ -929,7 +929,6 @@ export const BlogProvider = ({ children }: BlogProviderProps) => {
       };
       
       setPodcasts((prevPodcasts) => [newPodcast, ...prevPodcasts]);
-      return newPodcast;
     } catch (error) {
       console.error("Failed to add podcast:", error);
       throw error;

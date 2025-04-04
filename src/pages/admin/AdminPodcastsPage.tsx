@@ -1,10 +1,11 @@
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useBlog } from "../../context/BlogContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Play } from "lucide-react";
 import { PodcastEpisode, PodcastTimestamp } from "@/types/blog";
+import { PodcastUploader } from "@/components/PodcastUploader";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -31,9 +32,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Input,
+} from "@/components/ui/input";
+import {
+  Label,
+} from "@/components/ui/label";
+import {
+  Textarea,
+} from "@/components/ui/textarea";
 import { PodcastPlayer } from "@/components/PodcastPlayer";
 import { v4 as uuidv4 } from "uuid";
 
@@ -51,6 +58,7 @@ const AdminPodcastsPage = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
+  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [duration, setDuration] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -61,7 +69,6 @@ const AdminPodcastsPage = () => {
   const [timestampTime, setTimestampTime] = useState("");
   const [timestampLabel, setTimestampLabel] = useState("");
   
-  // Sort podcasts by episode number (newest first)
   const sortedPodcasts = [...podcasts].sort((a, b) => 
     b.episodeNumber - a.episodeNumber
   );
@@ -70,6 +77,7 @@ const AdminPodcastsPage = () => {
     setTitle("");
     setDescription("");
     setAudioUrl("");
+    setAudioFile(null);
     setEpisodeNumber(podcasts.length > 0 ? Math.max(...podcasts.map(p => p.episodeNumber)) + 1 : 1);
     setDuration("");
     setThumbnailUrl("");
@@ -109,6 +117,33 @@ const AdminPodcastsPage = () => {
     setIsPlayerDialogOpen(true);
   };
   
+  const handleAudioFileSelected = (file: File) => {
+    setAudioFile(file);
+    
+    if (!title.trim()) {
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
+      setTitle(fileName);
+    }
+    
+    const tempUrl = URL.createObjectURL(file);
+    setAudioUrl(tempUrl);
+    
+    const audio = new Audio();
+    audio.src = tempUrl;
+    audio.addEventListener('loadedmetadata', () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        const minutes = Math.floor(audio.duration / 60);
+        const seconds = Math.floor(audio.duration % 60);
+        setDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      }
+    });
+  };
+  
+  const handleAudioFileRemoved = () => {
+    setAudioFile(null);
+    setAudioUrl("");
+  };
+  
   const handleAddGuest = () => {
     if (guestNameInput.trim()) {
       setGuestNames(prev => [...prev, guestNameInput.trim()]);
@@ -136,7 +171,7 @@ const AdminPodcastsPage = () => {
   };
   
   const handleAddPodcast = async () => {
-    if (!title.trim() || !description.trim() || !audioUrl.trim() || !duration.trim() || !category.trim()) {
+    if (!title.trim() || !description.trim() || (!audioUrl.trim() && !audioFile) || !duration.trim() || !category.trim()) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
@@ -148,10 +183,21 @@ const AdminPodcastsPage = () => {
     try {
       setIsLoading(true);
       
+      let finalAudioUrl = audioUrl;
+      
+      if (audioFile) {
+        finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
+        
+        toast({
+          title: "Audio Upload Simulation",
+          description: "In a real app, the audio would be uploaded to storage. Using placeholder URL for demo.",
+        });
+      }
+      
       await addPodcast({
         title,
         description,
-        audioUrl,
+        audioUrl: finalAudioUrl,
         episodeNumber,
         duration,
         thumbnailUrl,
@@ -181,7 +227,7 @@ const AdminPodcastsPage = () => {
   const handleUpdatePodcast = async () => {
     if (!currentPodcast) return;
     
-    if (!title.trim() || !description.trim() || !audioUrl.trim() || !duration.trim() || !category.trim()) {
+    if (!title.trim() || !description.trim() || (!audioUrl.trim() && !audioFile) || !duration.trim() || !category.trim()) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
@@ -193,10 +239,21 @@ const AdminPodcastsPage = () => {
     try {
       setIsLoading(true);
       
+      let finalAudioUrl = audioUrl;
+      
+      if (audioFile) {
+        finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
+        
+        toast({
+          title: "Audio Upload Simulation",
+          description: "In a real app, the audio would be uploaded to storage. Using placeholder URL for demo.",
+        });
+      }
+      
       await updatePodcast(currentPodcast.id, {
         title,
         description,
-        audioUrl,
+        audioUrl: finalAudioUrl,
         episodeNumber,
         duration,
         thumbnailUrl,
@@ -325,7 +382,6 @@ const AdminPodcastsPage = () => {
         </div>
       )}
       
-      {/* Add Podcast Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -336,6 +392,19 @@ const AdminPodcastsPage = () => {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Upload Audio File</Label>
+              <PodcastUploader 
+                onFileSelected={handleAudioFileSelected}
+                onFileRemoved={handleAudioFileRemoved}
+                accept="audio/*"
+                maxSizeMB={50}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Or provide an audio URL below
+              </p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
@@ -379,12 +448,13 @@ const AdminPodcastsPage = () => {
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="audioUrl">Audio URL *</Label>
+                <Label htmlFor="audioUrl">Audio URL {audioFile ? '(optional if file uploaded)' : '*'}</Label>
                 <Input
                   id="audioUrl"
                   value={audioUrl}
                   onChange={(e) => setAudioUrl(e.target.value)}
                   placeholder="https://example.com/podcast.mp3"
+                  disabled={!!audioFile}
                 />
               </div>
               
@@ -410,7 +480,6 @@ const AdminPodcastsPage = () => {
               </div>
             </div>
             
-            {/* Guest Names */}
             <div className="space-y-2">
               <Label>Guest Names</Label>
               <div className="flex gap-2">
@@ -450,7 +519,6 @@ const AdminPodcastsPage = () => {
               )}
             </div>
             
-            {/* Timestamps */}
             <div className="space-y-2">
               <Label>Timestamps</Label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -517,7 +585,6 @@ const AdminPodcastsPage = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Edit Podcast Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -596,7 +663,6 @@ const AdminPodcastsPage = () => {
               </div>
             </div>
             
-            {/* Guest Names */}
             <div className="space-y-2">
               <Label>Guest Names</Label>
               <div className="flex gap-2">
@@ -636,7 +702,6 @@ const AdminPodcastsPage = () => {
               )}
             </div>
             
-            {/* Timestamps */}
             <div className="space-y-2">
               <Label>Timestamps</Label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -703,7 +768,6 @@ const AdminPodcastsPage = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -726,7 +790,6 @@ const AdminPodcastsPage = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Podcast Player Dialog */}
       <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
         <DialogContent className="sm:max-w-[700px] p-0">
           {currentPodcast && (

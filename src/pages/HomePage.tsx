@@ -44,57 +44,62 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container py-8 space-y-12">
-      {/* Hero Slider */}
+    <div className="space-y-12">
+      {/* Hero Slider - Full screen with CTAs */}
       <HeroSlider />
       
-      {/* Featured Content Section */}
-      <FeaturedContent />
-      
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          {/* Recent Posts */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Recent Articles</h2>
-            </div>
-            
-            <CategoryList categories={categories} />
-            
-            <div className="grid gap-6 md:grid-cols-2">
-              {recentPosts.map((post) => (
-                <BlogCard key={post.id} post={post} />
-              ))}
-            </div>
-            
-            {postsToShow < sortedPosts.length && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-            
-            {recentPosts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No articles found</p>
-              </div>
-            )}
-          </section>
-        </div>
+      <div className="container py-8">
+        {/* Featured Content Section */}
+        <FeaturedContent />
         
-        {/* Sidebar */}
-        <aside className="space-y-6">
-          <TrendingPosts posts={posts} />
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+          <div className="lg:col-span-2">
+            {/* Recent Posts */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Recent Articles</h2>
+              </div>
+              
+              <CategoryList categories={categories} />
+              
+              <div className="grid gap-6 md:grid-cols-2">
+                {recentPosts.map((post) => (
+                  <BlogCard key={post.id} post={post} />
+                ))}
+              </div>
+              
+              {postsToShow < sortedPosts.length && (
+                <div className="mt-8 text-center">
+                  <button
+                    onClick={loadMore}
+                    className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+              
+              {recentPosts.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No articles found</p>
+                </div>
+              )}
+            </section>
+          </div>
           
-          <PollWidget poll={samplePoll} onVote={votePoll} />
-          
-          <AffiliateProducts links={affiliateLinks.slice(0, 2)} />
-        </aside>
+          {/* Sidebar */}
+          <aside className="space-y-6">
+            <TrendingPosts posts={posts} />
+            
+            {/* Poll section with ID for direct link */}
+            <div id="polls">
+              <PollWidget poll={samplePoll} onVote={votePoll} />
+            </div>
+            
+            <AffiliateProducts links={affiliateLinks.slice(0, 2)} />
+          </aside>
+        </div>
       </div>
     </div>
   );

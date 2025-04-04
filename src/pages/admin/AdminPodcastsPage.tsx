@@ -1,9 +1,10 @@
+
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useBlog } from "../../context/BlogContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Play } from "lucide-react";
-import { PodcastEpisode, PodcastTimestamp } from "@/types/blog";
+import { PodcastEpisode } from "@/types/blog";
 import { PodcastUploader } from "@/components/PodcastUploader";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -57,17 +58,16 @@ const AdminPodcastsPage = () => {
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [excerpt, setExcerpt] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [duration, setDuration] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [category, setCategory] = useState("web-development");
   const [guestNames, setGuestNames] = useState<string[]>([]);
   const [guestNameInput, setGuestNameInput] = useState("");
-  const [timestamps, setTimestamps] = useState<PodcastTimestamp[]>([]);
-  const [timestampTime, setTimestampTime] = useState("");
-  const [timestampLabel, setTimestampLabel] = useState("");
   
   const sortedPodcasts = [...podcasts].sort((a, b) => 
     b.episodeNumber - a.episodeNumber
@@ -76,17 +76,16 @@ const AdminPodcastsPage = () => {
   const openAddDialog = () => {
     setTitle("");
     setDescription("");
+    setExcerpt("");
     setAudioUrl("");
     setAudioFile(null);
     setEpisodeNumber(podcasts.length > 0 ? Math.max(...podcasts.map(p => p.episodeNumber)) + 1 : 1);
     setDuration("");
     setThumbnailUrl("");
+    setThumbnailFile(null);
     setCategory("web-development");
     setGuestNames([]);
     setGuestNameInput("");
-    setTimestamps([]);
-    setTimestampTime("");
-    setTimestampLabel("");
     setIsAddDialogOpen(true);
   };
   
@@ -94,6 +93,7 @@ const AdminPodcastsPage = () => {
     setCurrentPodcast(podcast);
     setTitle(podcast.title);
     setDescription(podcast.description);
+    setExcerpt(podcast.description.substring(0, 150) + "...");
     setAudioUrl(podcast.audioUrl);
     setEpisodeNumber(podcast.episodeNumber);
     setDuration(podcast.duration);
@@ -101,9 +101,6 @@ const AdminPodcastsPage = () => {
     setCategory(podcast.category);
     setGuestNames(podcast.guestNames || []);
     setGuestNameInput("");
-    setTimestamps(podcast.timestamps || []);
-    setTimestampTime("");
-    setTimestampLabel("");
     setIsEditDialogOpen(true);
   };
   
@@ -144,6 +141,16 @@ const AdminPodcastsPage = () => {
     setAudioUrl("");
   };
   
+  const handleThumbnailFileSelected = (file: File) => {
+    setThumbnailFile(file);
+    setThumbnailUrl(URL.createObjectURL(file));
+  };
+  
+  const handleThumbnailFileRemoved = () => {
+    setThumbnailFile(null);
+    setThumbnailUrl("");
+  };
+  
   const handleAddGuest = () => {
     if (guestNameInput.trim()) {
       setGuestNames(prev => [...prev, guestNameInput.trim()]);
@@ -153,21 +160,6 @@ const AdminPodcastsPage = () => {
   
   const handleRemoveGuest = (index: number) => {
     setGuestNames(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const handleAddTimestamp = () => {
-    if (timestampTime.trim() && timestampLabel.trim()) {
-      setTimestamps(prev => [
-        ...prev, 
-        { time: timestampTime.trim(), label: timestampLabel.trim() }
-      ]);
-      setTimestampTime("");
-      setTimestampLabel("");
-    }
-  };
-  
-  const handleRemoveTimestamp = (index: number) => {
-    setTimestamps(prev => prev.filter((_, i) => i !== index));
   };
   
   const handleAddPodcast = async () => {
@@ -184,6 +176,7 @@ const AdminPodcastsPage = () => {
       setIsLoading(true);
       
       let finalAudioUrl = audioUrl;
+      let finalThumbnailUrl = thumbnailUrl;
       
       if (audioFile) {
         finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
@@ -194,16 +187,24 @@ const AdminPodcastsPage = () => {
         });
       }
       
+      if (thumbnailFile) {
+        finalThumbnailUrl = `https://example.com/thumbnails/${uuidv4()}-${thumbnailFile.name}`;
+        
+        toast({
+          title: "Thumbnail Upload Simulation",
+          description: "In a real app, the image would be uploaded to storage. Using placeholder URL for demo.",
+        });
+      }
+      
       await addPodcast({
         title,
         description,
         audioUrl: finalAudioUrl,
         episodeNumber,
         duration,
-        thumbnailUrl,
+        thumbnailUrl: finalThumbnailUrl,
         category,
-        guestNames,
-        timestamps
+        guestNames
       });
       
       toast({
@@ -240,6 +241,7 @@ const AdminPodcastsPage = () => {
       setIsLoading(true);
       
       let finalAudioUrl = audioUrl;
+      let finalThumbnailUrl = thumbnailUrl;
       
       if (audioFile) {
         finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
@@ -250,16 +252,24 @@ const AdminPodcastsPage = () => {
         });
       }
       
+      if (thumbnailFile) {
+        finalThumbnailUrl = `https://example.com/thumbnails/${uuidv4()}-${thumbnailFile.name}`;
+        
+        toast({
+          title: "Thumbnail Upload Simulation",
+          description: "In a real app, the image would be uploaded to storage. Using placeholder URL for demo.",
+        });
+      }
+      
       await updatePodcast(currentPodcast.id, {
         title,
         description,
         audioUrl: finalAudioUrl,
         episodeNumber,
         duration,
-        thumbnailUrl,
+        thumbnailUrl: finalThumbnailUrl,
         category,
-        guestNames,
-        timestamps
+        guestNames
       });
       
       toast({
@@ -387,22 +397,31 @@ const AdminPodcastsPage = () => {
           <DialogHeader>
             <DialogTitle>Add New Podcast</DialogTitle>
             <DialogDescription>
-              Add a new podcast episode to your collection.
+              Add a new podcast episode by OMAR WASHE KONDE.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Upload Audio File</Label>
+              <Label>Upload Audio File *</Label>
               <PodcastUploader 
                 onFileSelected={handleAudioFileSelected}
                 onFileRemoved={handleAudioFileRemoved}
                 accept="audio/*"
                 maxSizeMB={50}
+                type="audio"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Or provide an audio URL below
-              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Thumbnail Image</Label>
+              <PodcastUploader 
+                onFileSelected={handleThumbnailFileSelected}
+                onFileRemoved={handleThumbnailFileRemoved}
+                accept="image/*"
+                maxSizeMB={5}
+                type="image"
+              />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,40 +467,31 @@ const AdminPodcastsPage = () => {
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="audioUrl">Audio URL {audioFile ? '(optional if file uploaded)' : '*'}</Label>
-                <Input
-                  id="audioUrl"
-                  value={audioUrl}
-                  onChange={(e) => setAudioUrl(e.target.value)}
-                  placeholder="https://example.com/podcast.mp3"
-                  disabled={!!audioFile}
+                <Label htmlFor="excerpt">Short Description (Excerpt) *</Label>
+                <Textarea
+                  id="excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="A brief description of the podcast (max 150 characters)"
+                  maxLength={150}
+                  rows={2}
                 />
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="thumbnailUrl">Thumbnail URL</Label>
-                <Input
-                  id="thumbnailUrl"
-                  value={thumbnailUrl}
-                  onChange={(e) => setThumbnailUrl(e.target.value)}
-                  placeholder="https://example.com/thumbnail.jpg"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description">Full Description *</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Podcast description"
+                  placeholder="Detailed podcast description"
                   rows={5}
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Guest Names</Label>
+              <Label>Guest Names (Optional)</Label>
               <div className="flex gap-2">
                 <Input
                   value={guestNameInput}
@@ -514,60 +524,6 @@ const AdminPodcastsPage = () => {
                         ×
                       </Button>
                     </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Timestamps</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <Input
-                  value={timestampTime}
-                  onChange={(e) => setTimestampTime(e.target.value)}
-                  placeholder="Time (e.g., 05:30)"
-                />
-                <Input
-                  value={timestampLabel}
-                  onChange={(e) => setTimestampLabel(e.target.value)}
-                  placeholder="Description"
-                  className="md:col-span-2"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTimestamp();
-                    }
-                  }}
-                />
-              </div>
-              <Button 
-                type="button" 
-                onClick={handleAddTimestamp} 
-                variant="secondary"
-                size="sm"
-                className="mt-1"
-              >
-                Add Timestamp
-              </Button>
-              
-              {timestamps.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {timestamps.map((ts, index) => (
-                    <div key={index} className="flex items-center justify-between bg-secondary/20 rounded-md p-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono">{ts.time}</span>
-                        <span>{ts.label}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleRemoveTimestamp(index)}
-                      >
-                        ×
-                      </Button>
-                    </div>
                   ))}
                 </div>
               )}
@@ -653,7 +609,19 @@ const AdminPodcastsPage = () => {
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-description">Description *</Label>
+                <Label htmlFor="edit-excerpt">Short Description (Excerpt) *</Label>
+                <Textarea
+                  id="edit-excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="A brief description of the podcast (max 150 characters)"
+                  maxLength={150}
+                  rows={2}
+                />
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="edit-description">Full Description *</Label>
                 <Textarea
                   id="edit-description"
                   value={description}
@@ -664,7 +632,7 @@ const AdminPodcastsPage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label>Guest Names</Label>
+              <Label>Guest Names (Optional)</Label>
               <div className="flex gap-2">
                 <Input
                   value={guestNameInput}
@@ -697,60 +665,6 @@ const AdminPodcastsPage = () => {
                         ×
                       </Button>
                     </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Timestamps</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <Input
-                  value={timestampTime}
-                  onChange={(e) => setTimestampTime(e.target.value)}
-                  placeholder="Time (e.g., 05:30)"
-                />
-                <Input
-                  value={timestampLabel}
-                  onChange={(e) => setTimestampLabel(e.target.value)}
-                  placeholder="Description"
-                  className="md:col-span-2"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTimestamp();
-                    }
-                  }}
-                />
-              </div>
-              <Button 
-                type="button" 
-                onClick={handleAddTimestamp} 
-                variant="secondary"
-                size="sm"
-                className="mt-1"
-              >
-                Add Timestamp
-              </Button>
-              
-              {timestamps.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {timestamps.map((ts, index) => (
-                    <div key={index} className="flex items-center justify-between bg-secondary/20 rounded-md p-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono">{ts.time}</span>
-                        <span>{ts.label}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleRemoveTimestamp(index)}
-                      >
-                        ×
-                      </Button>
-                    </div>
                   ))}
                 </div>
               )}

@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Facebook, Twitter, Linkedin, Link2 } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Link2, Copy, Bookmark, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShareButtonsProps {
@@ -40,7 +40,17 @@ export const ShareButtons = ({ title, url }: ShareButtonsProps) => {
         aria-label="Share on Twitter"
       >
         <Twitter className="h-4 w-4 mr-2" />
-        Twitter
+        X
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`, '_blank')}
+        aria-label="Share on WhatsApp"
+      >
+        <MessageCircle className="h-4 w-4 mr-2" />
+        WhatsApp
       </Button>
       
       <Button
@@ -59,7 +69,7 @@ export const ShareButtons = ({ title, url }: ShareButtonsProps) => {
         onClick={handleCopyLink}
         aria-label="Copy link"
       >
-        <Link2 className="h-4 w-4 mr-2" />
+        <Copy className="h-4 w-4 mr-2" />
         Copy Link
       </Button>
     </div>

@@ -120,6 +120,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Updated to make JSON compatible with PodcastTimestamp
+export interface JsonPodcastTimestamp {
+  time: string;
+  label: string;
+  [key: string]: Json | undefined;
+}
+
 // Make sure JsonPollOption has a string index to fix the type error
 export interface JsonPollOption {
   id: string;

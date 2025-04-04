@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useBlog } from "../context/BlogContext";
 import { PodcastPlayer } from "../components/PodcastPlayer";
-import { BlogBreadcrumb } from "../components/BlogBreadcrumb";
 import { ShareButtons } from "../components/ShareButtons";
 import { Calendar, User, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -30,11 +29,11 @@ const PodcastDetailPage = () => {
       incrementPodcastViews(podcast.id);
       
       // Set page title
-      document.title = `${podcast.title} - DevInsights Podcast`;
+      document.title = `${podcast.title} - Podcast by OMAR WASHE KONDE`;
     }
     
     return () => {
-      document.title = "DevInsights";
+      document.title = "OMAR WASHE KONDE";
     };
   }, [podcast, incrementPodcastViews]);
   
@@ -123,15 +122,25 @@ const PodcastDetailPage = () => {
     }
   };
 
+  // Generate the breadcrumb items
+  const breadcrumbItems = [
+    { title: "Home", href: "/" },
+    { title: "Podcasts", href: "/podcast" },
+    { title: podcast.title, href: `/podcast/${podcast.id}` }
+  ];
+
+  // Get the current URL for sharing
+  const currentUrl = window.location.href;
+
   return (
     <div className="container py-8">
-      <BlogBreadcrumb 
-        items={[
-          { title: "Home", href: "/" },
-          { title: "Podcasts", href: "/podcast" },
-          { title: podcast.title, href: `/podcast/${podcast.id}` }
-        ]}
-      />
+      <div className="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-primary">Home</Link>
+        <span>/</span>
+        <Link to="/podcast" className="hover:text-primary">Podcasts</Link>
+        <span>/</span>
+        <span className="text-foreground">{podcast.title}</span>
+      </div>
       
       <div className="max-w-4xl mx-auto mt-6">
         <div className="space-y-4">
@@ -173,7 +182,7 @@ const PodcastDetailPage = () => {
         
         <Separator className="my-8" />
         
-        <ShareButtons title={podcast.title} />
+        <ShareButtons title={podcast.title} url={currentUrl} />
         
         <Separator className="my-8" />
         
@@ -248,6 +257,22 @@ const PodcastDetailPage = () => {
             )}
           </div>
         </section>
+        
+        <div className="mt-12 text-center">
+          <p className="text-sm text-muted-foreground mb-4">Support OMAR WASHE KONDE</p>
+          <div className="flex justify-center">
+            <Button asChild variant="outline" className="mx-2">
+              <a href="https://www.patreon.com/" target="_blank" rel="noopener noreferrer">
+                Become a Patron
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="mx-2">
+              <a href="https://www.buymeacoffee.com/" target="_blank" rel="noopener noreferrer">
+                Buy Me a Coffee
+              </a>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

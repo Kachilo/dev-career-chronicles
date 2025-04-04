@@ -1,6 +1,6 @@
 
 import { useState, useRef } from "react";
-import { Upload, X, Headphones } from "lucide-react";
+import { Upload, X, Headphones, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,16 +11,17 @@ interface PodcastUploaderProps {
   onFileRemoved: () => void;
   accept?: string;
   maxSizeMB?: number;
+  type?: "audio" | "image";
 }
 
 export const PodcastUploader = ({
   onFileSelected,
   onFileRemoved,
   accept = "audio/*",
-  maxSizeMB = 50
+  maxSizeMB = 50,
+  type = "audio"
 }: PodcastUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -44,9 +45,7 @@ export const PodcastUploader = ({
     onFileSelected(selectedFile);
 
     // Create preview URL
-    if (selectedFile.type.includes("audio")) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    }
+    setPreviewUrl(URL.createObjectURL(selectedFile));
   };
 
   const handleRemoveFile = () => {
@@ -68,20 +67,25 @@ export const PodcastUploader = ({
     }
   };
 
+  const isAudio = type === "audio";
+  const acceptValue = isAudio ? "audio/*" : "image/*";
+  const Icon = isAudio ? Headphones : Image;
+  const typeLabel = isAudio ? "audio" : "image";
+
   return (
     <div className="w-full">
       {!file ? (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 transition-colors">
           <Label
-            htmlFor="file-upload"
+            htmlFor={`file-upload-${type}`}
             className="flex flex-col items-center justify-center cursor-pointer"
           >
             <Upload className="h-12 w-12 text-gray-400 mb-3" />
-            <span className="text-lg font-medium">Upload your file</span>
+            <span className="text-lg font-medium">Upload your {typeLabel}</span>
             <span className="text-sm text-gray-500 mt-1">
-              {accept === "audio/*" 
+              {isAudio 
                 ? "MP3, WAV or OGG up to 50MB" 
-                : "MP4, WEBM or OGG up to 100MB"}
+                : "JPG, PNG or WEBP up to 5MB"}
             </span>
             <Button 
               variant="secondary"
@@ -91,10 +95,10 @@ export const PodcastUploader = ({
               Select File
             </Button>
             <Input
-              id="file-upload"
+              id={`file-upload-${type}`}
               ref={fileInputRef}
               type="file"
-              accept={accept}
+              accept={acceptValue}
               onChange={handleFileChange}
               className="sr-only"
             />
@@ -104,7 +108,7 @@ export const PodcastUploader = ({
         <div className="border rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Headphones className="h-8 w-8 text-primary mr-3" />
+              <Icon className="h-8 w-8 text-primary mr-3" />
               <div>
                 <p className="font-medium truncate max-w-[240px]">{file.name}</p>
                 <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
@@ -120,13 +124,21 @@ export const PodcastUploader = ({
             </Button>
           </div>
 
-          {previewUrl && file.type.includes("audio") && (
+          {previewUrl && (
             <div className="mt-4">
-              <audio
-                controls
-                src={previewUrl}
-                className="w-full"
-              />
+              {isAudio ? (
+                <audio
+                  controls
+                  src={previewUrl}
+                  className="w-full"
+                />
+              ) : (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-40 object-cover rounded-md"
+                />
+              )}
             </div>
           )}
         </div>

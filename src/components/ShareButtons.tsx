@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Facebook, Twitter, Linkedin, Link2, Copy, Bookmark, MessageCircle } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Link2, Copy, MessageCircle, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShareButtonsProps {
@@ -21,8 +21,37 @@ export const ShareButtons = ({ title, url }: ShareButtonsProps) => {
     });
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: title,
+          url: url,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
+      {/* Native Share API (for mobile) */}
+      {navigator.share && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleShare}
+          aria-label="Share"
+        >
+          <Share2 className="h-4 w-4 mr-2" />
+          Share
+        </Button>
+      )}
+      
       <Button
         variant="outline"
         size="sm"

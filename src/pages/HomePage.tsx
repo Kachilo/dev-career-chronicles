@@ -48,11 +48,8 @@ const HomePage = () => {
     new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
   );
   
-  // Get featured post (most recent)
-  const featuredPost = sortedPosts[0];
-  
-  // Get recent posts (excluding featured)
-  const recentPosts = sortedPosts.slice(1, postsToShow);
+  // Get recent posts
+  const recentPosts = sortedPosts.slice(0, postsToShow);
   
   // Get a sample poll
   const samplePoll = polls[0] || {
@@ -72,13 +69,13 @@ const HomePage = () => {
   };
 
   return (
-    <div className="space-y-12">
-      {/* Hero Slider - Full screen with CTAs */}
-      <div className="relative min-h-[80vh] flex items-center justify-center bg-gray-900 text-white">
+    <div className="flex flex-col">
+      {/* Hero Section - Full height with improved organization */}
+      <section className="relative h-screen w-full overflow-hidden bg-gray-900 text-white">
         <div className="absolute inset-0 z-0">
           <HeroSlider />
         </div>
-        <div className="relative z-10 container mx-auto text-center px-4 py-20">
+        <div className="relative z-10 container mx-auto flex flex-col items-center justify-center h-full px-4 py-20 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             Welcome to OMAR WASHE KONDE
           </h1>
@@ -89,7 +86,7 @@ const HomePage = () => {
           {/* Call to Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-              <Link to="/categories/web-development" className="flex items-center">
+              <Link to="/categories/all" className="flex items-center">
                 <FileText className="mr-2 h-5 w-5" />
                 Explore Blogs
               </Link>
@@ -110,112 +107,122 @@ const HomePage = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </section>
       
-      <div className="container py-8">
-        {/* Featured Content Section */}
-        <FeaturedContent />
-        
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
-          <div className="lg:col-span-2">
-            {/* Recent Posts */}
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Recent Articles</h2>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/categories/all">View All</Link>
-                </Button>
-              </div>
-              
-              <CategoryList categories={categories} />
-              
-              {!imagesPreloaded ? (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {Array(4).fill(0).map((_, i) => (
-                    <div key={i} className="rounded-lg overflow-hidden shadow-md">
-                      <div className="bg-muted h-48 animate-pulse" />
-                      <div className="p-4 space-y-3">
-                        <div className="h-6 bg-muted animate-pulse rounded" />
-                        <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                        <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {recentPosts.map((post) => (
-                    <BlogCard key={post.id} post={post} />
-                  ))}
-                </div>
-              )}
-              
-              {postsToShow < sortedPosts.length && (
-                <div className="mt-8 text-center">
-                  <Button
-                    onClick={loadMore}
-                    className="inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  >
-                    Load More
+      {/* Featured Content Section with improved spacing */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <FeaturedContent />
+        </div>
+      </section>
+      
+      {/* Main Content Section with improved organization */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Main Content Column */}
+            <div className="lg:col-span-2 space-y-16">
+              {/* Recent Posts */}
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-3xl font-bold">Recent Articles</h2>
+                  <Button asChild variant="outline">
+                    <Link to="/categories/all">View All</Link>
                   </Button>
                 </div>
-              )}
-              
-              {recentPosts.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No articles found</p>
+                
+                <CategoryList categories={categories} />
+                
+                <div className="mt-8">
+                  {!imagesPreloaded ? (
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {Array(4).fill(0).map((_, i) => (
+                        <div key={i} className="rounded-lg overflow-hidden shadow-md">
+                          <div className="bg-muted h-48 animate-pulse" />
+                          <div className="p-4 space-y-3">
+                            <div className="h-6 bg-muted animate-pulse rounded" />
+                            <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {recentPosts.map((post) => (
+                        <BlogCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </section>
-            
-            <section className="mt-16">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Featured Podcasts</h2>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/podcast">View All</Link>
-                </Button>
+                
+                {postsToShow < sortedPosts.length && (
+                  <div className="mt-8 text-center">
+                    <Button
+                      onClick={loadMore}
+                      variant="secondary"
+                    >
+                      Load More
+                    </Button>
+                  </div>
+                )}
+                
+                {recentPosts.length === 0 && (
+                  <div className="text-center py-12 bg-card rounded-lg shadow-sm">
+                    <p className="text-muted-foreground">No articles found</p>
+                  </div>
+                )}
               </div>
               
-              <div className="bg-card rounded-lg p-6 shadow-sm border">
-                <p className="mb-4">Listen to the latest episodes of OMAR WASHE KONDE's podcast, where we discuss important topics with industry experts.</p>
-                <Button asChild>
-                  <Link to="/podcast" className="flex items-center">
-                    <Headphones className="mr-2 h-4 w-4" />
-                    Browse Episodes
-                  </Link>
-                </Button>
+              {/* Featured Podcasts Section */}
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-3xl font-bold">Featured Podcasts</h2>
+                  <Button asChild variant="outline">
+                    <Link to="/podcast">View All</Link>
+                  </Button>
+                </div>
+                
+                <div className="bg-card rounded-lg p-8 shadow-sm border">
+                  <p className="mb-6 text-lg">Listen to the latest episodes of OMAR WASHE KONDE's podcast, where we discuss important topics with industry experts.</p>
+                  <Button asChild size="lg">
+                    <Link to="/podcast" className="flex items-center">
+                      <Headphones className="mr-2 h-5 w-5" />
+                      Browse Episodes
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </section>
+            </div>
+            
+            {/* Sidebar */}
+            <aside className="space-y-10">
+              <div className="bg-card rounded-lg p-6 border shadow-sm">
+                <h3 className="text-xl font-bold mb-4">Support My Work</h3>
+                <p className="text-muted-foreground mb-6">
+                  If you enjoy the content I create and would like to support me, consider making a donation.
+                </p>
+                <DonationButton name="OMAR WASHE KONDE" />
+              </div>
+              
+              <TrendingPosts posts={posts} />
+              
+              {/* Poll section with ID for direct link */}
+              <div id="polls" className="bg-card rounded-lg p-6 border shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">Community Poll</h3>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/polls">More Polls</Link>
+                  </Button>
+                </div>
+                <PollWidget poll={samplePoll} onVote={votePoll} />
+              </div>
+              
+              <AffiliateProducts links={affiliateLinks.slice(0, 2)} />
+            </aside>
           </div>
-          
-          {/* Sidebar */}
-          <aside className="space-y-6">
-            <TrendingPosts posts={posts} />
-            
-            {/* Poll section with ID for direct link */}
-            <div id="polls">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold">Community Poll</h3>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/polls">More Polls</Link>
-                </Button>
-              </div>
-              <PollWidget poll={samplePoll} onVote={votePoll} />
-            </div>
-            
-            <AffiliateProducts links={affiliateLinks.slice(0, 2)} />
-            
-            <div className="bg-card rounded-lg p-6 border shadow-sm">
-              <h3 className="text-xl font-bold mb-3">Support My Work</h3>
-              <p className="text-muted-foreground mb-4">
-                If you enjoy the content I create and would like to support me, consider making a donation.
-              </p>
-              <DonationButton name="OMAR WASHE KONDE" />
-            </div>
-          </aside>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

@@ -1,716 +1,353 @@
 
-import { useState, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { useBlog } from "../../context/BlogContext";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Mic, Plus, Podcast, Play, Pencil, Trash } from "lucide-react";
+import { useBlog } from "@/context/BlogContext";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, Play } from "lucide-react";
-import { PodcastEpisode } from "@/types/blog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { PodcastUploader } from "@/components/PodcastUploader";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Input,
-} from "@/components/ui/input";
-import {
-  Label,
-} from "@/components/ui/label";
-import {
-  Textarea,
-} from "@/components/ui/textarea";
-import { PodcastPlayer } from "@/components/PodcastPlayer";
-import { v4 as uuidv4 } from "uuid";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+import { PodcastEpisode } from "@/types/blog";
+import { ShareButtons } from "@/components/ShareButtons";
 
 const AdminPodcastsPage = () => {
-  const { podcasts, addPodcast, updatePodcast, deletePodcast } = useBlog();
-  const { toast } = useToast();
-  
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isPlayerDialogOpen, setIsPlayerDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentPodcast, setCurrentPodcast] = useState<PodcastEpisode | null>(null);
-  
+  const navigate = useNavigate();
+  const { podcasts, addPodcast, deletePodcast } = useBlog();
+  const [isAddingPodcast, setIsAddingPodcast] = useState(false);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [audioUrl, setAudioUrl] = useState("");
-  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [category, setCategory] = useState("general");
   const [episodeNumber, setEpisodeNumber] = useState(1);
-  const [duration, setDuration] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [category, setCategory] = useState("web-development");
-  const [guestNames, setGuestNames] = useState<string[]>([]);
-  const [guestNameInput, setGuestNameInput] = useState("");
+  const [guests, setGuests] = useState("");
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [selectedPodcast, setSelectedPodcast] = useState<PodcastEpisode | null>(null);
   
+  // Form validation
+  const isFormValid = title && description && audioFile && category;
+  
+  const handleAudioUpload = (file: File) => {
+    setAudioFile(file);
+  };
+  
+  const handleRemoveAudio = () => {
+    setAudioFile(null);
+  };
+  
+  const handleThumbnailUpload = (file: File) => {
+    setThumbnailFile(file);
+  };
+  
+  const handleRemoveThumbnail = () => {
+    setThumbnailFile(null);
+  };
+  
+  const handleSubmit = () => {
+    if (!isFormValid) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    // Create a URL for the audio file
+    const audioUrl = URL.createObjectURL(audioFile!);
+    
+    // Create a URL for the thumbnail file if it exists
+    const thumbnailUrl = thumbnailFile 
+      ? URL.createObjectURL(thumbnailFile) 
+      : undefined;
+    
+    // Process guest names if provided
+    const guestNames = guests.trim() ? guests.split(',').map(g => g.trim()) : undefined;
+    
+    // Add the podcast
+    addPodcast({
+      id: crypto.randomUUID(),
+      title,
+      description,
+      audioUrl,
+      episodeNumber,
+      duration: "00:00",  // This would normally be calculated
+      uploadDate: new Date().toISOString(),
+      thumbnailUrl,
+      guestNames,
+      category,
+      views: 0,
+      comments: []
+    });
+    
+    // Reset form
+    setTitle("");
+    setDescription("");
+    setAudioFile(null);
+    setThumbnailFile(null);
+    setEpisodeNumber(podcasts.length + 1);
+    setGuests("");
+    setCategory("general");
+    
+    // Close the form
+    setIsAddingPodcast(false);
+    
+    // Show success message
+    toast.success("Podcast published successfully!");
+  };
+  
+  const handlePreview = (podcast: PodcastEpisode) => {
+    setSelectedPodcast(podcast);
+    setIsPlayerOpen(true);
+  };
+  
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this podcast?")) {
+      deletePodcast(id);
+      toast.success("Podcast deleted successfully");
+    }
+  };
+  
+  // Sort podcasts by episode number (newest first)
   const sortedPodcasts = [...podcasts].sort((a, b) => 
     b.episodeNumber - a.episodeNumber
   );
   
-  const openAddDialog = () => {
-    setTitle("");
-    setDescription("");
-    setExcerpt("");
-    setAudioUrl("");
-    setAudioFile(null);
-    setEpisodeNumber(podcasts.length > 0 ? Math.max(...podcasts.map(p => p.episodeNumber)) + 1 : 1);
-    setDuration("");
-    setThumbnailUrl("");
-    setThumbnailFile(null);
-    setCategory("web-development");
-    setGuestNames([]);
-    setGuestNameInput("");
-    setIsAddDialogOpen(true);
-  };
-  
-  const openEditDialog = (podcast: PodcastEpisode) => {
-    setCurrentPodcast(podcast);
-    setTitle(podcast.title);
-    setDescription(podcast.description);
-    setExcerpt(podcast.description.substring(0, 150) + "...");
-    setAudioUrl(podcast.audioUrl);
-    setEpisodeNumber(podcast.episodeNumber);
-    setDuration(podcast.duration);
-    setThumbnailUrl(podcast.thumbnailUrl || "");
-    setCategory(podcast.category);
-    setGuestNames(podcast.guestNames || []);
-    setGuestNameInput("");
-    setIsEditDialogOpen(true);
-  };
-  
-  const openDeleteDialog = (podcast: PodcastEpisode) => {
-    setCurrentPodcast(podcast);
-    setIsDeleteDialogOpen(true);
-  };
-  
-  const openPlayerDialog = (podcast: PodcastEpisode) => {
-    setCurrentPodcast(podcast);
-    setIsPlayerDialogOpen(true);
-  };
-  
-  const handleAudioFileSelected = (file: File) => {
-    setAudioFile(file);
-    
-    if (!title.trim()) {
-      const fileName = file.name.replace(/\.[^/.]+$/, "");
-      setTitle(fileName);
-    }
-    
-    const tempUrl = URL.createObjectURL(file);
-    setAudioUrl(tempUrl);
-    
-    const audio = new Audio();
-    audio.src = tempUrl;
-    audio.addEventListener('loadedmetadata', () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        const minutes = Math.floor(audio.duration / 60);
-        const seconds = Math.floor(audio.duration % 60);
-        setDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-      }
-    });
-  };
-  
-  const handleAudioFileRemoved = () => {
-    setAudioFile(null);
-    setAudioUrl("");
-  };
-  
-  const handleThumbnailFileSelected = (file: File) => {
-    setThumbnailFile(file);
-    setThumbnailUrl(URL.createObjectURL(file));
-  };
-  
-  const handleThumbnailFileRemoved = () => {
-    setThumbnailFile(null);
-    setThumbnailUrl("");
-  };
-  
-  const handleAddGuest = () => {
-    if (guestNameInput.trim()) {
-      setGuestNames(prev => [...prev, guestNameInput.trim()]);
-      setGuestNameInput("");
-    }
-  };
-  
-  const handleRemoveGuest = (index: number) => {
-    setGuestNames(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const handleAddPodcast = async () => {
-    if (!title.trim() || !description.trim() || (!audioUrl.trim() && !audioFile) || !duration.trim() || !category.trim()) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      let finalAudioUrl = audioUrl;
-      let finalThumbnailUrl = thumbnailUrl;
-      
-      if (audioFile) {
-        finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
-        
-        toast({
-          title: "Audio Upload Simulation",
-          description: "In a real app, the audio would be uploaded to storage. Using placeholder URL for demo.",
-        });
-      }
-      
-      if (thumbnailFile) {
-        finalThumbnailUrl = `https://example.com/thumbnails/${uuidv4()}-${thumbnailFile.name}`;
-        
-        toast({
-          title: "Thumbnail Upload Simulation",
-          description: "In a real app, the image would be uploaded to storage. Using placeholder URL for demo.",
-        });
-      }
-      
-      await addPodcast({
-        title,
-        description,
-        audioUrl: finalAudioUrl,
-        episodeNumber,
-        duration,
-        thumbnailUrl: finalThumbnailUrl,
-        category,
-        guestNames
-      });
-      
-      toast({
-        title: "Podcast added",
-        description: "The podcast has been added successfully."
-      });
-      
-      setIsAddDialogOpen(false);
-    } catch (error) {
-      console.error("Error adding podcast:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add the podcast. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleUpdatePodcast = async () => {
-    if (!currentPodcast) return;
-    
-    if (!title.trim() || !description.trim() || (!audioUrl.trim() && !audioFile) || !duration.trim() || !category.trim()) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      let finalAudioUrl = audioUrl;
-      let finalThumbnailUrl = thumbnailUrl;
-      
-      if (audioFile) {
-        finalAudioUrl = `https://example.com/podcasts/${uuidv4()}-${audioFile.name}`;
-        
-        toast({
-          title: "Audio Upload Simulation",
-          description: "In a real app, the audio would be uploaded to storage. Using placeholder URL for demo.",
-        });
-      }
-      
-      if (thumbnailFile) {
-        finalThumbnailUrl = `https://example.com/thumbnails/${uuidv4()}-${thumbnailFile.name}`;
-        
-        toast({
-          title: "Thumbnail Upload Simulation",
-          description: "In a real app, the image would be uploaded to storage. Using placeholder URL for demo.",
-        });
-      }
-      
-      await updatePodcast(currentPodcast.id, {
-        title,
-        description,
-        audioUrl: finalAudioUrl,
-        episodeNumber,
-        duration,
-        thumbnailUrl: finalThumbnailUrl,
-        category,
-        guestNames
-      });
-      
-      toast({
-        title: "Podcast updated",
-        description: "The podcast has been updated successfully."
-      });
-      
-      setIsEditDialogOpen(false);
-    } catch (error) {
-      console.error("Error updating podcast:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update the podcast. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleDeletePodcast = async () => {
-    if (!currentPodcast) return;
-    
-    try {
-      setIsLoading(true);
-      
-      await deletePodcast(currentPodcast.id);
-      
-      toast({
-        title: "Podcast deleted",
-        description: "The podcast has been deleted successfully."
-      });
-      
-      setIsDeleteDialogOpen(false);
-    } catch (error) {
-      console.error("Error deleting podcast:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the podcast. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Manage Podcasts</h2>
-        <Button onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" /> New Podcast
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Manage Podcasts</h1>
+        
+        <Button onClick={() => setIsAddingPodcast(true)} className="bg-primary text-white">
+          <Mic className="mr-2 h-4 w-4" />
+          Publish Podcast
         </Button>
       </div>
       
-      {podcasts.length === 0 ? (
-        <div className="bg-background border rounded-md p-8 text-center">
-          <p className="text-muted-foreground mb-4">No podcasts found</p>
-          <Button onClick={openAddDialog}>Add your first podcast</Button>
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+      {/* Podcasts Table */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">#</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead className="hidden md:table-cell">Category</TableHead>
+              <TableHead className="hidden md:table-cell">Upload Date</TableHead>
+              <TableHead className="hidden md:table-cell">Views</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedPodcasts.length === 0 ? (
               <TableRow>
-                <TableHead className="w-14">Ep #</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableCell colSpan={6} className="text-center h-32 text-muted-foreground">
+                  No podcasts found. Click "Publish Podcast" to add your first episode.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPodcasts.map((podcast) => (
+            ) : (
+              sortedPodcasts.map((podcast) => (
                 <TableRow key={podcast.id}>
-                  <TableCell className="font-medium">{podcast.episodeNumber}</TableCell>
-                  <TableCell>{podcast.title}</TableCell>
-                  <TableCell className="capitalize">{podcast.category}</TableCell>
-                  <TableCell>{podcast.duration}</TableCell>
-                  <TableCell>{formatDate(podcast.uploadDate)}</TableCell>
+                  <TableCell>{podcast.episodeNumber}</TableCell>
+                  <TableCell className="flex items-center gap-3">
+                    {podcast.thumbnailUrl ? (
+                      <img 
+                        src={podcast.thumbnailUrl} 
+                        alt={podcast.title} 
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                        <Podcast className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <span className="line-clamp-1">{podcast.title}</span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">{podcast.category}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {new Date(podcast.uploadDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">{podcast.views}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openPlayerDialog(podcast)}
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handlePreview(podcast)}
+                        title="Preview"
                       >
                         <Play className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(podcast)}
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => navigate(`/podcast/${podcast.id}`)}
+                        title="View"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => openDeleteDialog(podcast)}
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleDelete(podcast.id)}
+                        title="Delete"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
       
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Podcast</DialogTitle>
-            <DialogDescription>
-              Add a new podcast episode by OMAR WASHE KONDE.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Add Podcast Sheet */}
+      <Sheet open={isAddingPodcast} onOpenChange={setIsAddingPodcast}>
+        <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Publish New Podcast</SheetTitle>
+          </SheetHeader>
           
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-6">
             <div className="space-y-2">
-              <Label>Upload Audio File *</Label>
-              <PodcastUploader 
-                onFileSelected={handleAudioFileSelected}
-                onFileRemoved={handleAudioFileRemoved}
-                accept="audio/*"
-                maxSizeMB={50}
+              <Label htmlFor="title">Title <span className="text-destructive">*</span></Label>
+              <Input 
+                id="title" 
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)} 
+                placeholder="Enter podcast title"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="web-development">Web Development</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                  <SelectItem value="technology">Technology</SelectItem>
+                  <SelectItem value="design">Design</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="episode">Episode Number</Label>
+              <Input 
+                id="episode" 
+                type="number" 
+                value={episodeNumber} 
+                onChange={(e) => setEpisodeNumber(parseInt(e.target.value) || 1)} 
+                min={1}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description <span className="text-destructive">*</span></Label>
+              <Textarea 
+                id="description" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                placeholder="Enter podcast description"
+                rows={5}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="guests">Guest Names (comma-separated)</Label>
+              <Input 
+                id="guests" 
+                value={guests} 
+                onChange={(e) => setGuests(e.target.value)} 
+                placeholder="Enter guest names, separated by commas"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Podcast Audio <span className="text-destructive">*</span></Label>
+              <PodcastUploader
+                onFileSelected={handleAudioUpload}
+                onFileRemoved={handleRemoveAudio}
                 type="audio"
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Thumbnail Image</Label>
-              <PodcastUploader 
-                onFileSelected={handleThumbnailFileSelected}
-                onFileRemoved={handleThumbnailFileRemoved}
+              <Label>Podcast Thumbnail</Label>
+              <PodcastUploader
+                onFileSelected={handleThumbnailUpload}
+                onFileRemoved={handleRemoveThumbnail}
+                type="image"
                 accept="image/*"
                 maxSizeMB={5}
-                type="image"
               />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Podcast title"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="episodeNumber">Episode Number *</Label>
-                <Input
-                  id="episodeNumber"
-                  type="number"
-                  value={episodeNumber}
-                  onChange={(e) => setEpisodeNumber(parseInt(e.target.value))}
-                  min={1}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Input
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="e.g., web-development"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duration *</Label>
-                <Input
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g., 45:30"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="excerpt">Short Description (Excerpt) *</Label>
-                <Textarea
-                  id="excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="A brief description of the podcast (max 150 characters)"
-                  maxLength={150}
-                  rows={2}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="description">Full Description *</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detailed podcast description"
-                  rows={5}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Guest Names (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={guestNameInput}
-                  onChange={(e) => setGuestNameInput(e.target.value)}
-                  placeholder="Guest name"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddGuest();
-                    }
-                  }}
-                />
-                <Button type="button" onClick={handleAddGuest} variant="secondary">
-                  Add
-                </Button>
-              </div>
-              
-              {guestNames.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {guestNames.map((name, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {name}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 hover:bg-transparent"
-                        onClick={() => handleRemoveGuest(index)}
-                      >
-                        ×
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Cancel
+          <SheetFooter>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!isFormValid}
+              className="w-full"
+            >
+              Publish Podcast
             </Button>
-            <Button onClick={handleAddPodcast} disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Podcast"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
       
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Podcast Preview Dialog */}
+      <Dialog open={isPlayerOpen} onOpenChange={setIsPlayerOpen}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit Podcast</DialogTitle>
-            <DialogDescription>
-              Update the details of this podcast episode.
-            </DialogDescription>
+            <DialogTitle>Preview Podcast</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-title">Title *</Label>
-                <Input
-                  id="edit-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-episodeNumber">Episode Number *</Label>
-                <Input
-                  id="edit-episodeNumber"
-                  type="number"
-                  value={episodeNumber}
-                  onChange={(e) => setEpisodeNumber(parseInt(e.target.value))}
-                  min={1}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-category">Category *</Label>
-                <Input
-                  id="edit-category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-duration">Duration *</Label>
-                <Input
-                  id="edit-duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-audioUrl">Audio URL *</Label>
-                <Input
-                  id="edit-audioUrl"
-                  value={audioUrl}
-                  onChange={(e) => setAudioUrl(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-thumbnailUrl">Thumbnail URL</Label>
-                <Input
-                  id="edit-thumbnailUrl"
-                  value={thumbnailUrl}
-                  onChange={(e) => setThumbnailUrl(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-excerpt">Short Description (Excerpt) *</Label>
-                <Textarea
-                  id="edit-excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="A brief description of the podcast (max 150 characters)"
-                  maxLength={150}
-                  rows={2}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-description">Full Description *</Label>
-                <Textarea
-                  id="edit-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={5}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Guest Names (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={guestNameInput}
-                  onChange={(e) => setGuestNameInput(e.target.value)}
-                  placeholder="Guest name"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddGuest();
-                    }
-                  }}
-                />
-                <Button type="button" onClick={handleAddGuest} variant="secondary">
-                  Add
-                </Button>
-              </div>
-              
-              {guestNames.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {guestNames.map((name, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {name}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 hover:bg-transparent"
-                        onClick={() => handleRemoveGuest(index)}
-                      >
-                        ×
-                      </Button>
-                    </Badge>
-                  ))}
+          {selectedPodcast && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                {selectedPodcast.thumbnailUrl && (
+                  <img 
+                    src={selectedPodcast.thumbnailUrl} 
+                    alt={selectedPodcast.title} 
+                    className="w-24 h-24 rounded-md object-cover"
+                  />
+                )}
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedPodcast.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Episode {selectedPodcast.episodeNumber}
+                  </p>
                 </div>
-              )}
+              </div>
+              
+              <audio 
+                controls 
+                src={selectedPodcast.audioUrl} 
+                className="w-full"
+              ></audio>
+              
+              <div>
+                <h4 className="font-medium mb-1">Description</h4>
+                <p className="text-sm">{selectedPodcast.description}</p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Share</h4>
+                <ShareButtons 
+                  title={selectedPodcast.title} 
+                  url={`${window.location.origin}/podcast/${selectedPodcast.id}`}
+                />
+              </div>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdatePodcast} disabled={isLoading}>
-              {isLoading ? "Updating..." : "Update Podcast"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the podcast 
-              "{currentPodcast?.title}" and remove all its data from the server.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeletePodcast} 
-              disabled={isLoading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isLoading ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-      <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] p-0">
-          {currentPodcast && (
-            <PodcastPlayer 
-              podcast={currentPodcast} 
-              onClose={() => setIsPlayerDialogOpen(false)} 
-            />
           )}
         </DialogContent>
       </Dialog>

@@ -79,7 +79,7 @@ export interface Message {
   updated_at: string;
 }
 
-// New interface for podcast episodes
+// Updated podcast interfaces to fix type errors
 export interface PodcastEpisode {
   id: string;
   title: string;
@@ -90,7 +90,7 @@ export interface PodcastEpisode {
   uploadDate: string;
   thumbnailUrl?: string;
   guestNames?: string[];
-  timestamps?: PodcastTimestamp[];
+  timestamps?: JsonPodcastTimestamp[]; // Changed to JsonPodcastTimestamp
   category: string;
   views: number;
   comments: PodcastComment[];

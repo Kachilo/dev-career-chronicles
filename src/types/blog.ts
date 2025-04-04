@@ -79,7 +79,23 @@ export interface Message {
   updated_at: string;
 }
 
-// Updated podcast interfaces to fix type errors
+// Types for JSON serialization with Supabase
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+// Make JsonPodcastTimestamp compatible with the database structure
+export interface JsonPodcastTimestamp {
+  time: string;
+  label: string;
+  [key: string]: Json | undefined;
+}
+
+// Updated podcast interfaces to be fully compatible with Supabase
 export interface PodcastEpisode {
   id: string;
   title: string;
@@ -90,12 +106,13 @@ export interface PodcastEpisode {
   uploadDate: string;
   thumbnailUrl?: string;
   guestNames?: string[];
-  timestamps?: JsonPodcastTimestamp[]; // Changed to JsonPodcastTimestamp
+  timestamps?: JsonPodcastTimestamp[]; // Using JsonPodcastTimestamp instead of PodcastTimestamp
   category: string;
   views: number;
   comments: PodcastComment[];
 }
 
+// This interface is now deprecated, use JsonPodcastTimestamp instead
 export interface PodcastTimestamp {
   time: string;
   label: string;
@@ -109,22 +126,6 @@ export interface PodcastComment {
   date: string;
   likes: number;
   dislikes: number;
-}
-
-// Types for JSON serialization with Supabase
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
-
-// Updated to make JSON compatible with PodcastTimestamp
-export interface JsonPodcastTimestamp {
-  time: string;
-  label: string;
-  [key: string]: Json | undefined;
 }
 
 // Make sure JsonPollOption has a string index to fix the type error

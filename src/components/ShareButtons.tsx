@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Facebook, Twitter, Linkedin, Link2, Copy, MessageCircle, Share2 } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Copy, MessageCircle, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShareButtonsProps {

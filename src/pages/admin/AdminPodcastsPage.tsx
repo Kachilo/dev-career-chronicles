@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, Plus, Podcast, Play, Pencil, Trash } from "lucide-react";
+import { Mic, Podcast, Play, Pencil, Trash } from "lucide-react";
 import { useBlog } from "@/context/BlogContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,53 +49,57 @@ const AdminPodcastsPage = () => {
     setThumbnailFile(null);
   };
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid) {
       toast.error("Please fill in all required fields");
       return;
     }
     
-    // Create a URL for the audio file
-    const audioUrl = URL.createObjectURL(audioFile!);
-    
-    // Create a URL for the thumbnail file if it exists
-    const thumbnailUrl = thumbnailFile 
-      ? URL.createObjectURL(thumbnailFile) 
-      : undefined;
-    
-    // Process guest names if provided
-    const guestNames = guests.trim() ? guests.split(',').map(g => g.trim()) : undefined;
-    
-    // Add the podcast
-    addPodcast({
-      id: crypto.randomUUID(),
-      title,
-      description,
-      audioUrl,
-      episodeNumber,
-      duration: "00:00",  // This would normally be calculated
-      uploadDate: new Date().toISOString(),
-      thumbnailUrl,
-      guestNames,
-      category,
-      views: 0,
-      comments: []
-    });
-    
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setAudioFile(null);
-    setThumbnailFile(null);
-    setEpisodeNumber(podcasts.length + 1);
-    setGuests("");
-    setCategory("general");
-    
-    // Close the form
-    setIsAddingPodcast(false);
-    
-    // Show success message
-    toast.success("Podcast published successfully!");
+    try {
+      // Create a URL for the audio file
+      const audioUrl = URL.createObjectURL(audioFile!);
+      
+      // Create a URL for the thumbnail file if it exists
+      const thumbnailUrl = thumbnailFile 
+        ? URL.createObjectURL(thumbnailFile) 
+        : undefined;
+      
+      // Process guest names if provided
+      const guestNames = guests.trim() ? guests.split(',').map(g => g.trim()) : undefined;
+      
+      // Add the podcast
+      await addPodcast({
+        title,
+        description,
+        audioUrl,
+        episodeNumber,
+        duration: "10:00",  // Default duration
+        thumbnailUrl,
+        guestNames,
+        category,
+      });
+      
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setAudioFile(null);
+      setThumbnailFile(null);
+      setEpisodeNumber(podcasts.length + 1);
+      setGuests("");
+      setCategory("general");
+      
+      // Close the form
+      setIsAddingPodcast(false);
+      
+      // Show success message
+      toast.success("Podcast published successfully!");
+      
+      // Force reload to refresh the podcast list
+      window.location.reload();
+    } catch (error) {
+      console.error("Error publishing podcast:", error);
+      toast.error("Failed to publish podcast. Please try again.");
+    }
   };
   
   const handlePreview = (podcast: PodcastEpisode) => {

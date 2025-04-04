@@ -83,7 +83,7 @@ const HomePage = () => {
             Insights, ideas, and inspiration for your personal and professional growth
           </p>
           
-          {/* Call to Action Buttons */}
+          {/* Call to Action Buttons - Fixed to prevent mirroring */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
               <Link to="/categories/all" className="flex items-center">
@@ -202,7 +202,7 @@ const HomePage = () => {
                 <p className="text-muted-foreground mb-6">
                   If you enjoy the content I create and would like to support me, consider making a donation.
                 </p>
-                <DonationButton name="OMAR WASHE KONDE" />
+                <DonationButton paymentInfo="OMAR WASHE KONDE" />
               </div>
               
               <TrendingPosts posts={posts} />

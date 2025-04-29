@@ -9,326 +9,16 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      admin_auth: {
-        Row: {
-          created_at: string
-          id: string
-          pin_hash: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          pin_hash: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          pin_hash?: string
-        }
-        Relationships: []
-      }
-      categories: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          slug: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          slug: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          slug?: string
-        }
-        Relationships: []
-      }
-      comments: {
-        Row: {
-          content: string
-          date: string
-          dislikes: number
-          id: string
-          likes: number
-          name: string
-          post_id: string
-        }
-        Insert: {
-          content: string
-          date?: string
-          dislikes?: number
-          id?: string
-          likes?: number
-          name: string
-          post_id: string
-        }
-        Update: {
-          content?: string
-          date?: string
-          dislikes?: number
-          id?: string
-          likes?: number
-          name?: string
-          post_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          admin_reply: string | null
-          created_at: string | null
-          id: string
-          is_read: boolean | null
-          message: string
-          name: string
-          phone_number: string
-          updated_at: string | null
-        }
-        Insert: {
-          admin_reply?: string | null
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          message: string
-          name: string
-          phone_number: string
-          updated_at?: string | null
-        }
-        Update: {
-          admin_reply?: string | null
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          message?: string
-          name?: string
-          phone_number?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      podcast_comments: {
-        Row: {
-          content: string
-          date: string
-          dislikes: number
-          id: string
-          likes: number
-          name: string
-          podcast_id: string
-        }
-        Insert: {
-          content: string
-          date?: string
-          dislikes?: number
-          id?: string
-          likes?: number
-          name: string
-          podcast_id: string
-        }
-        Update: {
-          content?: string
-          date?: string
-          dislikes?: number
-          id?: string
-          likes?: number
-          name?: string
-          podcast_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "podcast_comments_podcast_id_fkey"
-            columns: ["podcast_id"]
-            isOneToOne: false
-            referencedRelation: "podcasts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      podcasts: {
-        Row: {
-          audio_url: string
-          category: string
-          description: string
-          duration: string
-          episode_number: number
-          guest_names: string[] | null
-          id: string
-          thumbnail_url: string | null
-          timestamps: Json | null
-          title: string
-          upload_date: string
-          views: number
-        }
-        Insert: {
-          audio_url: string
-          category: string
-          description: string
-          duration: string
-          episode_number: number
-          guest_names?: string[] | null
-          id?: string
-          thumbnail_url?: string | null
-          timestamps?: Json | null
-          title: string
-          upload_date?: string
-          views?: number
-        }
-        Update: {
-          audio_url?: string
-          category?: string
-          description?: string
-          duration?: string
-          episode_number?: number
-          guest_names?: string[] | null
-          id?: string
-          thumbnail_url?: string | null
-          timestamps?: Json | null
-          title?: string
-          upload_date?: string
-          views?: number
-        }
-        Relationships: []
-      }
-      polls: {
-        Row: {
-          created_at: string
-          end_date: string
-          id: string
-          options: Json
-          post_id: string | null
-          question: string
-          reference: string | null
-        }
-        Insert: {
-          created_at?: string
-          end_date: string
-          id?: string
-          options: Json
-          post_id?: string | null
-          question: string
-          reference?: string | null
-        }
-        Update: {
-          created_at?: string
-          end_date?: string
-          id?: string
-          options?: Json
-          post_id?: string | null
-          question?: string
-          reference?: string | null
-        }
-        Relationships: []
-      }
-      posts: {
-        Row: {
-          author: string
-          category: string
-          content: string
-          created_at: string
-          excerpt: string
-          featured_image: string
-          id: string
-          published_date: string
-          reactions: Json | null
-          slug: string
-          tags: string[]
-          title: string
-          updated_at: string
-          views: number
-        }
-        Insert: {
-          author: string
-          category: string
-          content: string
-          created_at?: string
-          excerpt: string
-          featured_image: string
-          id?: string
-          published_date?: string
-          reactions?: Json | null
-          slug: string
-          tags?: string[]
-          title: string
-          updated_at?: string
-          views?: number
-        }
-        Update: {
-          author?: string
-          category?: string
-          content?: string
-          created_at?: string
-          excerpt?: string
-          featured_image?: string
-          id?: string
-          published_date?: string
-          reactions?: Json | null
-          slug?: string
-          tags?: string[]
-          title?: string
-          updated_at?: string
-          views?: number
-        }
-        Relationships: []
-      }
-      reactions: {
-        Row: {
-          created_at: string
-          id: string
-          post_id: string
-          session_id: string
-          type: Database["public"]["Enums"]["reaction_type"]
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          post_id: string
-          session_id: string
-          type: Database["public"]["Enums"]["reaction_type"]
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          post_id?: string
-          session_id?: string
-          type?: Database["public"]["Enums"]["reaction_type"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reactions_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      verify_admin_pin: {
-        Args: {
-          input_pin: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      reaction_type: "like" | "love" | "clap"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -336,27 +26,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -364,20 +56,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -385,20 +79,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -406,21 +102,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -429,6 +127,12 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
